@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "DiscordBot": {
+      "commandName": "Project",
+      "commandLineArgs": "dotnet run",
+      "workingDirectory": "C:\\Code\\HvZBot"
+    }
+  }
+}
