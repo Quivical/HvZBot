@@ -4,6 +4,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Command;
 using PlayerDict;
+using DSharpPlus.Entities;
+
 namespace DiscordBot
 {
     class Bot
@@ -22,7 +24,6 @@ namespace DiscordBot
         public static void Main(String[] args)
         {
             Bot bot = new Bot();
-            Console.WriteLine(Environment.GetEnvironmentVariable("HVZToken"));
             bot.MainAsync().GetAwaiter().GetResult();
         }
         public async Task MainAsync()
@@ -44,14 +45,23 @@ namespace DiscordBot
             var commands = this.Client.UseCommandsNext(new CommandsNextConfiguration()
             {
                 StringPrefixes = new[] { "!" },
-                EnableDms = true,
+                EnableDms = false,
                 Services = this.DiscordServices
             });
 
             commands.RegisterCommands<Commands>();
+            this.Client.GuildCreated += this.Discord_GuildCreated;
 
-            await Client.ConnectAsync();
+            DiscordActivity status = new("HvZ at Goucher College!", ActivityType.Playing);
+
+            await Client.ConnectAsync(status);
             await Task.Delay(-1);
         }
+    }
+
+    private Task Discord_GuildCreated(DiscordClient client, GuildCreateEventArgs e)
+    {
+        client.Logger.LogInformation(TestBotEventId, "Guild created: '{Guild}'", e.Guild.Name);
+        return Task.CompletedTask;
     }
 }

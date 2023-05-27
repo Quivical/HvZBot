@@ -26,7 +26,7 @@ namespace Command
         [Command("fetchplayers"), Description("Recover from a bot crash by pulling players from the save file"), RequireOwner]
         public async Task FetchPlayers(CommandContext ctx)
         {
-                _playerDictionary = Save.fetchPlayers();
+                _playerDictionary = Save.fetchPlayers(ctx.Guild.Id);
                 await ctx.Channel.SendMessageAsync("fetched " + _playerDictionary.Count.ToString() + " player(s)");
         }
 
@@ -34,7 +34,7 @@ namespace Command
         public async Task Reset(CommandContext ctx)
         {
             _playerDictionary = new PlayerDictionary();
-            await Save.WriteWholeSave(_playerDictionary);
+            await Save.WriteWholeSave(_playerDictionary, ctx.Guild.Id);
             _isOzSet = new bool();
             _tagAnnouncements = null;
             _channelRegistration = null;
@@ -45,9 +45,9 @@ namespace Command
         [Command("quicksetup"), Description("Set up the game for testing quickly."), RequireOwner, Hidden]
         public async Task QuickSetup(CommandContext ctx, DiscordChannel channel)
         {
-            SetChannelAnnouncement(ctx, channel);
-            SetChannelRegistration(ctx, channel);
-            SetTagChannel(ctx, channel);
+            await SetChannelAnnouncement(ctx, channel);
+            await SetChannelRegistration(ctx, channel);
+            await SetTagChannel(ctx, channel);
             await ctx.Channel.SendMessageAsync($"Test game has been set-up.");
         }
         
@@ -63,9 +63,9 @@ namespace Command
         {
             if (_channelRegistration == null)
             {
-                await ctx.Member.SendMessageAsync("Registration for HvZ is not yet open. Contact game admins for more information.");
+                await ctx.Member!.SendMessageAsync("Registration for HvZ is not yet open. Contact game admins for more information.");
             }
-            else if (_playerDictionary.ContainsKey(ctx.Member.Id))
+            else if (_playerDictionary.ContainsKey(ctx.Member!.Id))
             {
                 var id = _playerDictionary.GetValueOrDefault(ctx.Member.Id);
                 await ctx.Member.SendMessageAsync($"You are already registered! Your HvZ ID is {id.HvzId}");
@@ -93,7 +93,7 @@ namespace Command
                 _playerDictionary.Add(ctx.Member.Id, Convert.ToHexString(id), ctx.Member.DisplayName);
                 await ctx.Member.SendMessageAsync($"Your HvZ ID is {Convert.ToHexString(id)}");
 
-                await Save.WriteWholeSave(_playerDictionary);
+                await Save.WriteWholeSave(_playerDictionary, ctx.Guild.Id);
                 
                 if (_channelRegistration != null)
                 {
@@ -130,7 +130,7 @@ namespace Command
                     }
                     else
                     {
-                        var player = _playerDictionary.GetValueOrDefault(ctx.Member.Id);
+                        var player = _playerDictionary.GetValueOrDefault(ctx.Member!.Id);
                         String tagging_player = player.IsOz ? "Original Zombie" : ctx.Member.Mention;
 
                         var player1 = _playerDictionary.FirstOrDefault(x => x.Value.HvzId == hvzId).Key;
@@ -165,7 +165,7 @@ namespace Command
 //                await ctx.Channel.SendMessageAsync($"OZ HvZ ID is {Convert.ToHexString(id)}");
                 _isOzSet = true;
                 await ctx.Channel.SendMessageAsync($"OZ is set");
-                await Save.WriteWholeSave(_playerDictionary);
+                await Save.WriteWholeSave(_playerDictionary, ctx.Guild.Id);
 
             //} else {
                 //await ctx.Channel.SendMessageAsync($"Sorry friend, you don't have permission to use this command.");
@@ -175,7 +175,7 @@ namespace Command
         [Command("c"), Description("Delete any private messages this bot sent you")]
         public async Task ClearDirectMessage(CommandContext ctx)
         {
-            var DmChannel = await ctx.Member.CreateDmChannelAsync();
+            var DmChannel = await ctx.Member!.CreateDmChannelAsync();
 
             var DmChannelMessages = await DmChannel.GetMessagesAsync();
 

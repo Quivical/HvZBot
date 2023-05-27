@@ -5,9 +5,9 @@ namespace DiscordBot;
 
 public class Save
 {
-    public static PlayerDictionary fetchPlayers()
+    public static PlayerDictionary fetchPlayers(ulong guildID)
         {
-            string[] unparsedPlayers = System.IO.File.ReadAllLines(@"F:\Software\HvZBot\playerSave.txt");
+            string[] unparsedPlayers = System.IO.File.ReadAllLines(@"servers\"+guildID+@"\playerSave.txt");
             PlayerDictionary pd = new PlayerDictionary();
 
             foreach (string upP in unparsedPlayers)
@@ -23,10 +23,10 @@ public class Save
             return pd;
         }
     
-    public static async Task WriteWholeSave(PlayerDictionary pd)
+    public static async Task WriteWholeSave(PlayerDictionary pd, ulong guildID)
     {
-        File.WriteAllText(@"F:\Software\HvZBot\playerSave.txt", string.Empty);
-        using StreamWriter file = new(@"F:\Software\HvZBot\playerSave.txt", append: true);
+        File.WriteAllText(@"servers\"+guildID+@"\playerSave.txt", string.Empty);
+        using StreamWriter file = new(@"servers\"+guildID+@"\playerSave.txt", append: true);
         foreach (var p in pd)
         {
             await file.WriteLineAsync($"{p.Value.ID},{p.Value.HvzId},{p.Value.IsOz}");
