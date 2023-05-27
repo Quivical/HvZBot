@@ -61,7 +61,7 @@ namespace DiscordBot
     /*private Task Discord_GuildCreated(DiscordClient client, GuildCreateEventArgs e)
     {
         client.Logger.LogInformation(TestBotEventId, "Guild created: '{Guild}'", e.Guild.Name);
-        return Task.CompletedTask; added test
+        return Task.CompletedTask; added test ; second test 6 
     }*/
     
 }
