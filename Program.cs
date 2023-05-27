@@ -50,7 +50,7 @@ namespace DiscordBot
             });
 
             commands.RegisterCommands<Commands>();
-            this.Client.GuildCreated += this.Discord_GuildCreated;
+            /*this.Client.GuildCreated += this.Discord_GuildCreated;*/
 
             DiscordActivity status = new("HvZ at Goucher College!", ActivityType.Playing);
 
@@ -58,10 +58,10 @@ namespace DiscordBot
             await Task.Delay(-1);
         }
     }
-
-    private Task Discord_GuildCreated(DiscordClient client, GuildCreateEventArgs e)
+    /*private Task Discord_GuildCreated(DiscordClient client, GuildCreateEventArgs e)
     {
         client.Logger.LogInformation(TestBotEventId, "Guild created: '{Guild}'", e.Guild.Name);
         return Task.CompletedTask;
-    }
+    }*/
+    
 }
