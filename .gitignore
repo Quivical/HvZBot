@@ -362,3 +362,6 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /secrets.env
+/.idea/.idea.HvZBot.dir/.idea/deployment.xml
+/.idea/.idea.HvZBot.dir/.idea/vcs.xml
+/.idea/.idea.HvZBot.dir/.idea/webServers.xml
