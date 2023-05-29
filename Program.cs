@@ -31,7 +31,7 @@ namespace DiscordBot
             var cfg = new DiscordConfiguration()
             {
                 Intents = DiscordIntents.All,
-                Token = Environment.GetEnvironmentVariable("HVZToken"),
+                Token = Environment.GetEnvironmentVariable("HvZToken"),
                 TokenType = TokenType.Bot,
                 AutoReconnect = true,
                 MinimumLogLevel = LogLevel.Debug
