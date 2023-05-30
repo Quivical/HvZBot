@@ -364,3 +364,4 @@ FodyWeavers.xsd
 /secrets.env
 .idea/
 DiscordBot.sln
+nohup.out
