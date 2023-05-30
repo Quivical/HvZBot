@@ -1,10 +1,11 @@
-﻿using DSharpPlus;
+﻿using DiscordBot.commands;
+using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
-using Command;
 using PlayerDict;
 using DSharpPlus.Entities;
+using DSharpPlus.SlashCommands;
 
 namespace DiscordBot
 {
@@ -48,9 +49,11 @@ namespace DiscordBot
                 EnableDms = false,
                 Services = this.DiscordServices
             });
-
-            commands.RegisterCommands<Commands>();
+            var slash = Client.UseSlashCommands();
             /*this.Client.GuildCreated += this.Discord_GuildCreated;*/
+            
+            commands.RegisterCommands<Commands>();
+            slash.RegisterCommands<SlashCommands>();
 
             DiscordActivity status = new("HvZ at Goucher College!", ActivityType.Playing);
 
