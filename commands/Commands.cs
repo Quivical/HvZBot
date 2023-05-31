@@ -232,7 +232,7 @@ namespace DiscordBot.commands
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"Channel registration set to {channel.ToString()!}"));
         }
 
-        /*[SlashCommand("register", "Use this command to register for your HvZ ID code")] //todo
+        /*[SlashCommand("register", "Use this command to register for your HvZ ID code")] //todo - this is not intended to be commented out, but does need to be seriously reworked 
         public async Task RegisterHvZId(CommandContext ctx)
         {
             if (_channelRegistration == null)
