@@ -1,9 +1,0 @@
-{
-  "profiles": {
-    "DiscordBot": {
-      "commandName": "Project",
-      "commandLineArgs": "dotnet run",
-      "workingDirectory": "/Users/quillmoss/Software/HvZBot"
-    }
-  }
-}
