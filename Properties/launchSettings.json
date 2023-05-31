@@ -3,7 +3,7 @@
     "DiscordBot": {
       "commandName": "Project",
       "commandLineArgs": "dotnet run",
-      "workingDirectory": "F:/Software/HvZBot"
+      "workingDirectory": "/Users/quillmoss/Software/HvZBot"
     }
   }
 }
