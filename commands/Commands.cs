@@ -199,74 +199,131 @@ namespace DiscordBot.commands
     
     public class SlashCommands : ApplicationCommandModule
     {
+        private DiscordChannel? _channelRegistration { get; set; }
+        private DiscordChannel? _tagAnnouncements { get; set; }
+        private DiscordChannel? _tagChannel { get; set; }
+        private bool _isOzSet { get; set; } = false;
+        private PlayerDictionary _playerDictionary { get; set; }
+
+        public SlashCommands(PlayerDictionary playerDictionary)
+        {
+            _playerDictionary = playerDictionary;
+        }
+        
         [SlashCommand("test", "A slash command made to test the DSharpPlus Slash Commands extension!")]
         public async Task TestCommand(InteractionContext ctx)
         {
             await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Success!"));
         }
         
-        [SlashCommand("delaytest", "A slash command made to test the DSharpPlus Slash Commands extension!")]
-        public async Task DelayTestCommand(InteractionContext ctx)
+        [SlashCommand("quicksetup", "Set up the game for testing quickly."), SlashRequireOwner]
+        public async Task QuickSetup(InteractionContext ctx, [Option("channel", "Channel to use for all required commands")] DiscordChannel channel)
         {
-            await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
-
-            //Some time consuming task like a database call or a complex operation
-
-            await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("Thanks for waiting!"));
+            await SetChannelAnnouncement(ctx, channel);
+            await SetChannelRegistration(ctx, channel);
+            await SetTagChannel(ctx, channel);
+            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Test game has been set up."));
         }
         
-        //Attribute choices
-        [SlashCommand("ban", "Bans a user"), SlashRequireOwner]
-        public async Task Ban(InteractionContext ctx, [Option("user", "User to ban")] DiscordUser user,
-            [Choice("None", 0)]
-            [Choice("1 Day", 1)]
-            [Choice("1 Week", 7)]
-            [Option("deletedays", "Number of days of message history to delete")] long deleteDays = 0)
+        [SlashCommand("setchannelreg", "Set a registration channel"), SlashRequireUserPermissions(Permissions.ManageChannels)]
+        public async Task SetChannelRegistration(InteractionContext ctx, [Option("channel", "The channel you would like registration logs sent to")] DiscordChannel channel)
         {
-            await ctx.Guild.BanMemberAsync(user.Id, (int)deleteDays);
-            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"Banned {user.Username}"));
+                _channelRegistration = channel;
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"Channel registration set to {channel.ToString()!}"));
         }
 
-//Enum choices
-        public enum MyEnum
+        /*[SlashCommand("register", "Use this command to register for your HvZ ID code")] //todo
+        public async Task RegisterHvZId(CommandContext ctx)
         {
-            [ChoiceName("Option 1")]
-            option1,
-            [ChoiceName("Option 2")]
-            option2,
-            [ChoiceName("Option 3")]
-            option3
-        }
-
-        [SlashCommand("enum", "Test enum")]
-        public async Task EnumCommand(InteractionContext ctx, [Option("enum", "enum option")]MyEnum myEnum = MyEnum.option1)
-        {
-            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(myEnum.GetName()));
-        }
-
-//ChoiceProvider choices
-        public class TestChoiceProvider : IChoiceProvider
-        {
-            public async Task<IEnumerable<DiscordApplicationCommandOptionChoice>> Provider()
+            if (_channelRegistration == null)
             {
-                return new DiscordApplicationCommandOptionChoice[]
-                {
-                    //You would normally use a database call here
-                    new DiscordApplicationCommandOptionChoice("testing", "testing"),
-                    new DiscordApplicationCommandOptionChoice("testing2", "test option 2")
-                };
+                await ctx.Member!.SendMessageAsync("Registration for HvZ is not yet open. Contact game admins for more information.");
             }
-        }
+            else if (_playerDictionary.ContainsKey(ctx.Member!.Id))
+            {
+                var id = _playerDictionary.GetValueOrDefault(ctx.Member.Id);
+                await ctx.Member.SendMessageAsync($"You are already registered! Your HvZ ID is {id.HvzId}");
+            }
+            else
+            {
 
-        [SlashCommand("choiceprovider", "test")]
-        public async Task ChoiceProviderCommand(InteractionContext ctx,
-            [ChoiceProvider(typeof(TestChoiceProvider))]
-            [Option("option", "option")] string option)
+                byte[] id = new byte[2];
+
+                using (var rng = RandomNumberGenerator.Create())
+                {
+                    rng.GetBytes(id);
+                }
+                restart:
+                foreach (var player in _playerDictionary) {
+                    if (player.Value.HvzId == Convert.ToHexString(id))
+                    {
+                        using (var rng = RandomNumberGenerator.Create())
+                        {
+                            rng.GetBytes(id);
+                        }
+                        goto restart;
+                    }
+                }
+                _playerDictionary.Add(ctx.Member.Id, Convert.ToHexString(id), ctx.Member.DisplayName);
+                await ctx.Member.SendMessageAsync($"Your HvZ ID is {Convert.ToHexString(id)}");
+
+                await Save.WriteWholeSave(_playerDictionary, ctx.Guild.Id);
+                
+                if (_channelRegistration != null)
+                {
+                    await _channelRegistration.SendMessageAsync($"{ctx.Member.DisplayName} has HvZ ID of {Convert.ToHexString(id)}");
+                }
+
+            }
+        }*/
+
+        [SlashCommand("settagannounce", "Set a tag announcement channel"), RequireOwner]
+        public async Task SetChannelAnnouncement(InteractionContext ctx, [Option("channel", "The channel you would like to announce tags in")] DiscordChannel channel)
         {
-            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(option));
+                _tagAnnouncements = channel;
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"Channel for tag announcements is set to {channel.ToString()}"));
         }
 
+        [SlashCommand("settagchannel", "Set specific tag channel"), RequireOwner]
+        public async Task SetTagChannel(InteractionContext ctx, [Option("channel", "The channel you would like people to report their tags in")] DiscordChannel channel)
+        {
+                _tagChannel = channel;
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"Channel for tag reporting is set to {channel.ToString()}"));
+        }
 
+        /*[SlashCommand("tag", "Tag a human! :zombie:")]
+        public async Task Tag(CommandContext ctx, string hvzId)
+        {
+            if (_tagChannel != null)
+            {
+                if (_tagAnnouncements != null)
+                {
+                    if (ctx.Channel != _tagChannel)
+                    {
+                        await ctx.Channel.SendMessageAsync("You can only tag in the tag channel!");
+                    }
+                    else
+                    {
+                        var player = _playerDictionary.GetValueOrDefault(ctx.Member!.Id);
+                        String tagging_player = player.IsOz ? "Original Zombie" : ctx.Member.Mention;
+
+                        var player1 = _playerDictionary.FirstOrDefault(x => x.Value.HvzId == hvzId).Key;
+                        var player2 = _playerDictionary.GetValueOrDefault(player1);
+                        await _tagAnnouncements.SendMessageAsync($"{tagging_player} tagged <@{player2.ID}>!");
+
+                    }
+                }
+                else
+                {
+                    await ctx.Channel.SendMessageAsync("Tag announcement channel is not set!");
+                }
+            }
+            else
+            {
+                await ctx.Channel.SendMessageAsync("Tag channel is not set!");
+            }
+        }*/
+        
     }
 
     
