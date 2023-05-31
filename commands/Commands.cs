@@ -219,10 +219,11 @@ namespace DiscordBot.commands
         [SlashCommand("quicksetup", "Set up the game for testing quickly."), SlashRequireOwner]
         public async Task QuickSetup(InteractionContext ctx, [Option("channel", "Channel to use for all required commands")] DiscordChannel channel)
         {
+            await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
             await SetChannelAnnouncement(ctx, channel);
             await SetChannelRegistration(ctx, channel);
             await SetTagChannel(ctx, channel);
-            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Test game has been set up."));
+            await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("Test game has been set up."));
         }
         
         [SlashCommand("setchannelreg", "Set a registration channel"), SlashRequireUserPermissions(Permissions.ManageChannels)]
