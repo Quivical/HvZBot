@@ -54,7 +54,7 @@ namespace DiscordBot
             
             //commands.RegisterCommands<Commands>();
             //await this.Client.BulkOverwriteGlobalApplicationCommandsAsync();
-            slash.RegisterCommands<SlashCommands>(); // test
+            slash.RegisterCommands<SlashCommands>(830887192028250185); // test
 
             DiscordActivity status = new("HvZ at Goucher College!", ActivityType.Playing);
 
