@@ -365,4 +365,4 @@ FodyWeavers.xsd
 .idea/
 DiscordBot.sln
 nohup.out
-launchSettings.json
+/Properties/
