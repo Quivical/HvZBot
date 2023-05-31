@@ -43,17 +43,17 @@ namespace DiscordBot
                 .AddSingleton<PlayerDictionary>()
                 .BuildServiceProvider();
 
-            var commands = this.Client.UseCommandsNext(new CommandsNextConfiguration()
-            {
-                StringPrefixes = new[] { "!" },
-                EnableDms = false,
-                Services = this.DiscordServices
-            });
+            // var commands = this.Client.UseCommandsNext(new CommandsNextConfiguration()
+            // {
+            //     StringPrefixes = new[] { "!" },
+            //     EnableDms = false,
+            //     Services = this.DiscordServices
+            // });
             var slash = Client.UseSlashCommands();
             /*this.Client.GuildCreated += this.Discord_GuildCreated;*/
             
             //commands.RegisterCommands<Commands>();
-            slash.RegisterCommands<SlashCommands>(); // test
+            slash.RegisterCommands<SlashCommands>(830887192028250185); // test
 
             DiscordActivity status = new("HvZ at Goucher College!", ActivityType.Playing);
 
