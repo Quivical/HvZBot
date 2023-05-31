@@ -210,7 +210,7 @@ namespace DiscordBot.commands
         //     _playerDictionary = playerDictionary;
         // }
         
-        [SlashCommand("test", "A slash command made to test the DSharpPlus Slash Commands extension!")]
+        [SlashCommand("globaltest", "A slash command made to test the DSharpPlus Slash Commands extension!")]
         public async Task TestCommand(InteractionContext ctx)
         {
             await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Success!"));
