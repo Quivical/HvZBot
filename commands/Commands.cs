@@ -203,20 +203,15 @@ namespace DiscordBot.commands
         private DiscordChannel? _tagAnnouncements { get; set; }
         private DiscordChannel? _tagChannel { get; set; }
         private bool _isOzSet { get; set; } = false;
-        // private PlayerDictionary _playerDictionary { get; set; }
-        
-        // public SlashCommands(PlayerDictionary playerDictionary)
-        // {
-        //     _playerDictionary = playerDictionary;
-        // }
-        
+        private PlayerDictionary _playerDictionary { get; set; }
+
         [SlashCommand("test", "A slash command made to test the DSharpPlus Slash Commands extension!")]
         public async Task TestCommand(InteractionContext ctx)
         {
             await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Success!"));
         }
         
-        /*[SlashCommand("quicksetup", "Set up the game for testing quickly."), SlashRequireOwner]
+        [SlashCommand("quicksetup", "Set up the game for testing quickly."), SlashRequireOwner]
         public async Task QuickSetup(InteractionContext ctx, [Option("channel", "Channel to use for all required commands")] DiscordChannel channel)
         {
             await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
@@ -224,7 +219,7 @@ namespace DiscordBot.commands
             await SetChannelRegistration(ctx, channel);
             await SetTagChannel(ctx, channel);
             await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("Test game has been set up."));
-        }*/
+        }
         
         [SlashCommand("setchannelreg", "Set a registration channel"), SlashRequireUserPermissions(Permissions.ManageChannels)]
         public async Task SetChannelRegistration(InteractionContext ctx, [Option("channel", "The channel you would like registration logs sent to")] DiscordChannel channel)
@@ -278,19 +273,19 @@ namespace DiscordBot.commands
             }
         }*/
 
-        // [SlashCommand("settagannounce", "Set a tag announcement channel"), RequireOwner]
-        // public async Task SetChannelAnnouncement(InteractionContext ctx, [Option("channel", "The channel you would like to announce tags in")] DiscordChannel channel)
-        // {
-        //         _tagAnnouncements = channel;
-        //         await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"Channel for tag announcements is set to {channel.ToString()}"));
-        // }
-        //
-        // [SlashCommand("settagchannel", "Set specific tag channel"), RequireOwner]
-        // public async Task SetTagChannel(InteractionContext ctx, [Option("channel", "The channel you would like people to report their tags in")] DiscordChannel channel)
-        // {
-        //         _tagChannel = channel;
-        //         await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"Channel for tag reporting is set to {channel.ToString()}"));
-        // }
+        [SlashCommand("settagannounce", "Set a tag announcement channel"), RequireOwner]
+        public async Task SetChannelAnnouncement(InteractionContext ctx, [Option("channel", "The channel you would like to announce tags in")] DiscordChannel channel)
+        {
+                _tagAnnouncements = channel;
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"Channel for tag announcements is set to {channel.ToString()}"));
+        }
+        
+        [SlashCommand("settagchannel", "Set specific tag channel"), RequireOwner]
+        public async Task SetTagChannel(InteractionContext ctx, [Option("channel", "The channel you would like people to report their tags in")] DiscordChannel channel)
+        {
+                _tagChannel = channel;
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"Channel for tag reporting is set to {channel.ToString()}"));
+        }
 
         /*[SlashCommand("tag", "Tag a human! :zombie:")]
         public async Task Tag(CommandContext ctx, string hvzId)
