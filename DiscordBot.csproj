@@ -13,4 +13,8 @@
     <PackageReference Include="DSharpPlus.SlashCommands" Version="4.4.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="data\" />
+  </ItemGroup>
+
 </Project>

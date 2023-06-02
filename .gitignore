@@ -367,3 +367,4 @@ DiscordBot.sln
 nohup.out
 Properties/launchSettings.json
 Properties/
+/data/

@@ -215,13 +215,10 @@ namespace DiscordBot.commands
         public async Task QuickSetup(InteractionContext ctx, [Option("channel", "Channel to use for all required commands")] DiscordChannel channel)
         {
             await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
-            Console.WriteLine(channel.ToString());
-            Console.WriteLine("test");
             _channelRegistration = channel;
             _tagAnnouncements = channel;
             _tagChannel = channel;
             await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("Test game has been set up."));
-            Console.WriteLine(_channelRegistration);
         }
         
         [SlashCommand("setchannelreg", "Set a registration channel"), SlashRequireUserPermissions(Permissions.ManageChannels)]
@@ -231,7 +228,7 @@ namespace DiscordBot.commands
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"Channel registration set to {channel.ToString()!}"));
         }
 
-        [SlashCommand("register", "Use this command to register for your HvZ ID code")] //todo - this is not intended to be commented out, but does need to be seriously reworked 
+        [SlashCommand("register", "Use this command to register for your HvZ ID code")]
         public async Task RegisterHvZId(InteractionContext ctx)
         {
             await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Registering..."));
@@ -287,6 +284,15 @@ namespace DiscordBot.commands
         {
                 _tagChannel = channel;
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"Channel for tag reporting is set to {channel.ToString()}"));
+        }
+        
+        [SlashCommand("save", "Save a player")]
+        public async Task SavePlayer(InteractionContext ctx, [Option("player", "The player you would like to save")] DiscordUser player)
+        {
+            PlayerDictionary pd = new PlayerDictionary(); 
+            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Channel"));
+            Save save = new Save(pd, ctx.Guild.Id);
+            save.WriteWholeSave();
         }
 
         /*[SlashCommand("tag", "Tag a human! :zombie:")]
