@@ -3,7 +3,6 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
-using PlayerDict;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 
