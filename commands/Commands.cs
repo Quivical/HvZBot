@@ -215,9 +215,9 @@ namespace DiscordBot.commands
         public async Task QuickSetup(InteractionContext ctx, [Option("channel", "Channel to use for all required commands")] DiscordChannel channel)
         {
             await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
-            await SetChannelAnnouncement(ctx, channel);
-            await SetChannelRegistration(ctx, channel);
-            await SetTagChannel(ctx, channel);
+            _tagAnnouncements = channel;
+            _channelRegistration = channel;
+            _tagChannel = channel;
             await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("Test game has been set up."));
         }
         
@@ -273,14 +273,14 @@ namespace DiscordBot.commands
             }
         }*/
 
-        [SlashCommand("settagannounce", "Set a tag announcement channel"), RequireOwner]
+        [SlashCommand("settagannounce", "Set a tag announcement channel"), SlashRequireOwner]
         public async Task SetChannelAnnouncement(InteractionContext ctx, [Option("channel", "The channel you would like to announce tags in")] DiscordChannel channel)
         {
                 _tagAnnouncements = channel;
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"Channel for tag announcements is set to {channel.ToString()}"));
         }
         
-        [SlashCommand("settagchannel", "Set specific tag channel"), RequireOwner]
+        [SlashCommand("settagchannel", "Set specific tag channel"), SlashRequireOwner]
         public async Task SetTagChannel(InteractionContext ctx, [Option("channel", "The channel you would like people to report their tags in")] DiscordChannel channel)
         {
                 _tagChannel = channel;
