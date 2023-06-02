@@ -199,18 +199,18 @@ namespace DiscordBot.commands
     
     public class SlashCommands : ApplicationCommandModule
     {
-        // private DiscordChannel? _channelRegistration { get; set; }
-        // private DiscordChannel? _tagAnnouncements { get; set; }
-        // private DiscordChannel? _tagChannel { get; set; }
-        // private bool _isOzSet { get; set; } = false;
-        // private PlayerDictionary _playerDictionary { get; set; }
-        //
-        // public SlashCommands(PlayerDictionary playerDictionary)
-        // {
-        //     _playerDictionary = playerDictionary;
-        // }
+        private DiscordChannel? _channelRegistration { get; set; }
+        private DiscordChannel? _tagAnnouncements { get; set; }
+        private DiscordChannel? _tagChannel { get; set; }
+        private bool _isOzSet { get; set; } = false;
+        private PlayerDictionary _playerDictionary { get; set; }
         
-        [SlashCommand("globaltest", "A slash command made to test the DSharpPlus Slash Commands extension!")]
+        public SlashCommands(PlayerDictionary playerDictionary)
+        {
+            _playerDictionary = playerDictionary;
+        }
+        
+        [SlashCommand("test", "A slash command made to test the DSharpPlus Slash Commands extension!")]
         public async Task TestCommand(InteractionContext ctx)
         {
             await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Success!"));
@@ -224,14 +224,14 @@ namespace DiscordBot.commands
             await SetChannelRegistration(ctx, channel);
             await SetTagChannel(ctx, channel);
             await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("Test game has been set up."));
-        }
+        }*/
         
         [SlashCommand("setchannelreg", "Set a registration channel"), SlashRequireUserPermissions(Permissions.ManageChannels)]
         public async Task SetChannelRegistration(InteractionContext ctx, [Option("channel", "The channel you would like registration logs sent to")] DiscordChannel channel)
         {
                 _channelRegistration = channel;
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"Channel registration set to {channel.ToString()!}"));
-        }*/
+        }
 
         /*[SlashCommand("register", "Use this command to register for your HvZ ID code")] //todo - this is not intended to be commented out, but does need to be seriously reworked 
         public async Task RegisterHvZId(CommandContext ctx)
