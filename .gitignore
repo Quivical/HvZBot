@@ -364,3 +364,7 @@ FodyWeavers.xsd
 /secrets.env
 .idea/
 DiscordBot.sln
+nohup.out
+Properties/launchSettings.json
+Properties/
+/data/
