@@ -203,12 +203,12 @@ namespace DiscordBot.commands
         private DiscordChannel? _tagAnnouncements { get; set; }
         private DiscordChannel? _tagChannel { get; set; }
         private bool _isOzSet { get; set; } = false;
-        private PlayerDictionary _playerDictionary { get; set; }
+        // private PlayerDictionary _playerDictionary { get; set; }
         
-        public SlashCommands(PlayerDictionary playerDictionary)
-        {
-            _playerDictionary = playerDictionary;
-        }
+        // public SlashCommands(PlayerDictionary playerDictionary)
+        // {
+        //     _playerDictionary = playerDictionary;
+        // }
         
         [SlashCommand("test", "A slash command made to test the DSharpPlus Slash Commands extension!")]
         public async Task TestCommand(InteractionContext ctx)
