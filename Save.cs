@@ -5,6 +5,13 @@ namespace DiscordBot;
 
 public class Save
 {
+    private static string _root;
+    
+    public Save(PlayerDictionary playerDictionary)
+    {
+             _root = Directory.GetCurrentDirectory();
+    }
+
     public static PlayerDictionary fetchPlayers(ulong guildID)
         {
             string[] unparsedPlayers = System.IO.File.ReadAllLines(@"servers\"+guildID+@"\playerSave.txt");
@@ -25,8 +32,9 @@ public class Save
     
     public static async Task WriteWholeSave(PlayerDictionary pd, ulong guildID)
     {
-        File.WriteAllText(@"servers\"+guildID+@"\playerSave.txt", string.Empty);
-        using StreamWriter file = new(@"servers\"+guildID+@"\playerSave.txt", append: true);
+        string path = Path.Combine(_root, "data", $"{guildID}.env");
+        File.WriteAllText(path, string.Empty);
+        await using StreamWriter file = new(@"servers\"+guildID+@"\playerSave.txt", append: true);
         foreach (var p in pd)
         {
             await file.WriteLineAsync($"{p.Value.ID},{p.Value.HvzId},{p.Value.IsOz}");
