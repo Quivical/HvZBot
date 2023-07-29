@@ -3,6 +3,7 @@ using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
+using Microsoft.Data.Sqlite;
 
 namespace DiscordBot.commands
 {
@@ -18,6 +19,49 @@ namespace DiscordBot.commands
         public async Task TestCommand(InteractionContext ctx)
         {
             await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Success!"));
+        }
+        
+        [SlashCommand("announcepresence", "A slash command made to announce the presence of the bot in your server to the database.")]
+        public async Task AnnouncePresence(InteractionContext ctx)
+        {
+            await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
+
+            var serverDataConnection = new SqliteConnection($"Data Source=ServerData.db;");
+            serverDataConnection.Open();
+            
+            var sqliteCommand = serverDataConnection.CreateCommand();
+            try
+            {
+                sqliteCommand.CommandText = 
+                    @$"INSERT INTO servers
+                    VALUES ({ctx.Guild.Id}, null, null, null);";
+                sqliteCommand.ExecuteNonQuery();
+            }
+            catch
+            {
+                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(
+                    $"You've tried to add a server that already exists."));
+            }
+
+            sqliteCommand.CommandText =
+            @"
+                SELECT *
+                FROM servers
+            ";
+
+            var report = ""; 
+            await using (var reader = sqliteCommand.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    report = report + reader.GetString(0) + "\n";
+                }
+            }
+            serverDataConnection.Close();
+            
+            await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(
+                $"Your server has been added to the database.\nHere are the currently registered servers:\n{report}"));
+            
         }
         
         [SlashCommand("quicksetup", "Set up the game for testing quickly."), SlashRequireUserPermissions(Permissions.ManageChannels)]
