@@ -1,9 +1,9 @@
 ﻿using DiscordBot.commands;
 using DSharpPlus;
-using DSharpPlus.CommandsNext;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using DSharpPlus.Entities;
+using DSharpPlus.EventArgs;
 using DSharpPlus.SlashCommands;
 
 namespace DiscordBot
@@ -13,24 +13,26 @@ namespace DiscordBot
         private readonly String _root;
         private readonly String _dotEnv;
 
-        private DiscordClient? Client { get; set; }
-        private ServiceProvider? DiscordServices { get; set; }
+        public DiscordClient? Client { get; set; }
+        public ServiceProvider? DiscordServices { get; set; }
         public Bot()
         {
             _root = Directory.GetCurrentDirectory();
             _dotEnv = Path.Combine(_root, "secrets.env");
             DotEnv.Load(_dotEnv);
         }
+        
         public static void Main(String[] args)
         {
             Bot bot = new Bot();
             bot.MainAsync().GetAwaiter().GetResult();
         }
+        
         public async Task MainAsync()
         {
             var cfg = new DiscordConfiguration()
             {
-                Intents = DiscordIntents.All,
+                Intents = DiscordIntents.AllUnprivileged,
                 Token = Environment.GetEnvironmentVariable("HvZToken"),
                 TokenType = TokenType.Bot,
                 AutoReconnect = true,
@@ -42,10 +44,9 @@ namespace DiscordBot
                 .AddSingleton<PlayerDictionary>()
                 .BuildServiceProvider();
 
+            this.Client.GuildCreated += Client_GuildCreated;
+            
             var slash = Client.UseSlashCommands();
-
-			// this command is currently giving me compatibility issues, but it has been left in so that I can reconfigure it in the furture
-            /*this.Client.GuildCreated += this.Discord_GuildCreated;*/
     
             slash.RegisterCommands<SlashCommands>(830887192028250185);
             slash.RegisterCommands<SlashCommands>(1070921235283849306);
@@ -56,13 +57,11 @@ namespace DiscordBot
             await Client.ConnectAsync(status);
             await Task.Delay(-1);
         }
+        
+        public Task Client_GuildCreated(DiscordClient client, GuildCreateEventArgs e)
+        {
+            Console.WriteLine(e.Guild.Id);
+            return Task.CompletedTask;
+        }
     }
-
-	// this is the other half of the command giving me issues
-    /*private Task Discord_GuildCreated(DiscordClient client, GuildCreateEventArgs e)
-    {
-        client.Logger.LogInformation(TestBotEventId, "Guild created: '{Guild}'", e.Guild.Name);
-        return Task.CompletedTask; added test ; second test 6 
-    }*/
-    
 }
