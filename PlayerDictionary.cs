@@ -1,6 +1,6 @@
 using PlayerStruct;
 
-namespace PlayerDict
+namespace DiscordBot
 {
     public class PlayerDictionary : Dictionary<ulong, Player>
     {

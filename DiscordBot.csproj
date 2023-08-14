@@ -8,13 +8,23 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DSharpPlus" Version="4.4.1" />
-    <PackageReference Include="DSharpPlus.CommandsNext" Version="4.4.1" />
-    <PackageReference Include="DSharpPlus.SlashCommands" Version="4.4.1" />
+    <PackageReference Include="DSharpPlus" Version="4.4.2" />
+    <PackageReference Include="DSharpPlus.CommandsNext" Version="4.4.2" />
+    <PackageReference Include="DSharpPlus.SlashCommands" Version="4.4.2" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="7.0.10" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="data\" />
+    <Compile Remove="SQLite\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="SQLite\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="SQLite\**" />
+    <None Remove="secrets.env" />
   </ItemGroup>
 
 </Project>
