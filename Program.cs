@@ -42,15 +42,11 @@ namespace DiscordBot
                 .AddSingleton<PlayerDictionary>()
                 .BuildServiceProvider();
 
-            // var commands = this.Client.UseCommandsNext(new CommandsNextConfiguration()
-            // {
-            //     StringPrefixes = new[] { "!" },
-            //     EnableDms = false,
-            //     Services = this.DiscordServices
-            // });
             var slash = Client.UseSlashCommands();
+
+			// this command is currently giving me compatibility issues, but it has been left in so that I can reconfigure it in the furture
             /*this.Client.GuildCreated += this.Discord_GuildCreated;*/
-            
+    
             slash.RegisterCommands<SlashCommands>(830887192028250185);
             slash.RegisterCommands<SlashCommands>(1070921235283849306);
 
@@ -61,6 +57,8 @@ namespace DiscordBot
             await Task.Delay(-1);
         }
     }
+
+	// this is the other half of the command giving me issues
     /*private Task Discord_GuildCreated(DiscordClient client, GuildCreateEventArgs e)
     {
         client.Logger.LogInformation(TestBotEventId, "Guild created: '{Guild}'", e.Guild.Name);

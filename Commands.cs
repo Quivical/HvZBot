@@ -33,8 +33,7 @@ namespace DiscordBot.commands
             try
             {
                 sqliteCommand.CommandText = 
-                    @$"INSERT INTO servers
-                    VALUES ({ctx.Guild.Id}, null, null, null);";
+                    @$"INSERT INTO servers VALUES ({ctx.Guild.Id}, null, null, null);";
                 sqliteCommand.ExecuteNonQuery();
             }
             catch
@@ -44,10 +43,7 @@ namespace DiscordBot.commands
             }
 
             sqliteCommand.CommandText =
-            @"
-                SELECT *
-                FROM servers
-            ";
+            @"SELECT * FROM servers";
 
             var report = ""; 
             await using (var reader = sqliteCommand.ExecuteReader())
@@ -145,8 +141,8 @@ namespace DiscordBot.commands
             PlayerDictionary pd = new PlayerDictionary(); 
             pd.Add(player.Id, "0000", player.Username);
             await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Channel"));
-            Save save = new Save(pd, ctx.Guild.Id);
-            save.WriteWholeSave();
+            // deleted depreciated class 'Save', will be replaced with SQLite database
+            //save.WriteWholeSave();
         }
 
         /*[SlashCommand("tag", "Tag a human! :zombie:")]
