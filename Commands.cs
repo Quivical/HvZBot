@@ -85,7 +85,7 @@ namespace DiscordBot.commands
             {
                 await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("Registration for HvZ is not open yet!"));
             }
-            else if (_playerDictionary.ContainsKey(ctx.Member!.Id))
+            else if (_playerDictionary!.ContainsKey(ctx.Member!.Id))
             {
                 var id = _playerDictionary.GetValueOrDefault(ctx.Member.Id);
                 await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent($"You are already registered! Your HvZ ID is {id.HvzId}"));
