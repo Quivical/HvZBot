@@ -32,11 +32,11 @@ namespace DiscordBot
         {
             var cfg = new DiscordConfiguration()
             {
-                Intents = DiscordIntents.AllUnprivileged,
+                Intents = DiscordIntents.All,
                 Token = Environment.GetEnvironmentVariable("HvZToken"),
                 TokenType = TokenType.Bot,
                 AutoReconnect = true,
-                MinimumLogLevel = LogLevel.Debug
+                MinimumLogLevel = LogLevel.Information
 
             };
             this.Client = new DiscordClient(cfg);
@@ -44,7 +44,7 @@ namespace DiscordBot
                 .AddSingleton<PlayerDictionary>()
                 .BuildServiceProvider();
 
-            this.Client.GuildCreated += Client_GuildCreated;
+            this.Client.GuildCreated += OnGuildCreated;
             
             var slash = Client.UseSlashCommands();
     
@@ -58,7 +58,7 @@ namespace DiscordBot
             await Task.Delay(-1);
         }
         
-        public Task Client_GuildCreated(DiscordClient client, GuildCreateEventArgs e)
+        public Task OnGuildCreated(DiscordClient client, GuildCreateEventArgs e)
         {
             Console.WriteLine(e.Guild.Id);
             return Task.CompletedTask;

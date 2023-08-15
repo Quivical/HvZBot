@@ -26,37 +26,9 @@ namespace DiscordBot.commands
         {
             await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
 
-            var serverDataConnection = new SqliteConnection($"Data Source=ServerData.db;");
-            serverDataConnection.Open();
+            string message = await Save.RecordNewServer(ctx.Guild.Id);
             
-            var sqliteCommand = serverDataConnection.CreateCommand();
-            try
-            {
-                sqliteCommand.CommandText = 
-                    @$"INSERT INTO servers VALUES ({ctx.Guild.Id}, null, null, null);";
-                sqliteCommand.ExecuteNonQuery();
-            }
-            catch
-            {
-                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(
-                    $"You've tried to add a server that already exists."));
-            }
-
-            sqliteCommand.CommandText =
-            @"SELECT * FROM servers";
-
-            var report = ""; 
-            await using (var reader = sqliteCommand.ExecuteReader())
-            {
-                while (reader.Read())
-                {
-                    report = report + reader.GetString(0) + "\n";
-                }
-            }
-            serverDataConnection.Close();
-            
-            await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(
-                $"Your server has been added to the database.\nHere are the currently registered servers:\n{report}"));
+            await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(message));
             
         }
         
@@ -144,79 +116,7 @@ namespace DiscordBot.commands
             // deleted depreciated class 'Save', will be replaced with SQLite database
             //save.WriteWholeSave();
         }
-
-        /*[SlashCommand("tag", "Tag a human! :zombie:")]
-        public async Task Tag(CommandContext ctx, string hvzId)
-        {
-            if (_tagChannel != null)
-            {
-                if (_tagAnnouncements != null)
-                {
-                    if (ctx.Channel != _tagChannel)
-                    {
-                        await ctx.Channel.SendMessageAsync("You can only tag in the tag channel!");
-                    }
-                    else
-                    {
-                        var player = _playerDictionary.GetValueOrDefault(ctx.Member!.Id);
-                        String tagging_player = player.IsOz ? "Original Zombie" : ctx.Member.Mention;
-
-                        var player1 = _playerDictionary.FirstOrDefault(x => x.Value.HvzId == hvzId).Key;
-                        var player2 = _playerDictionary.GetValueOrDefault(player1);
-                        await _tagAnnouncements.SendMessageAsync($"{tagging_player} tagged <@{player2.ID}>!");
-
-                    }
-                }
-                else
-                {
-                    await ctx.Channel.SendMessageAsync("Tag announcement channel is not set!");
-                }
-            }
-            else
-            {
-                await ctx.Channel.SendMessageAsync("Tag channel is not set!");
-            }
-        }*/
         
-        //         [Command("fetchplayers"), Description("Recover from a bot crash by pulling players from the save file"), RequireOwner]
-//         public async Task FetchPlayers(CommandContext ctx)
-//         {
-//                 _playerDictionary = Save.fetchPlayers(ctx.Guild.Id);
-//                 await ctx.Channel.SendMessageAsync("fetched " + _playerDictionary.Count.ToString() + " player(s)");
-//         }
-//
-//         [Command("reset"), Description("Erases all save data and current game info."), RequireOwner, Hidden]
-//         public async Task Reset(CommandContext ctx)
-//         {
-//             _playerDictionary = new PlayerDictionary();
-//             await Save.WriteWholeSave(_playerDictionary, ctx.Guild.Id);
-//             _isOzSet = new bool();
-//             _tagAnnouncements = null;
-//             _channelRegistration = null;
-//             _tagChannel = null;
-//             await ctx.Channel.SendMessageAsync($"Game has been reset.");
-//         }
-//         [Command("setoz"), Description("Set a specified user to be the OZ"), Hidden, RequireOwner]
-//         public async Task SetOz(CommandContext ctx, DiscordUser user)
-//         {
-//             //if (password == 12034651156791056) {
-// //                byte[] id = new byte[2];
-//
-// //                using (var rng = RandomNumberGenerator.Create())
-//                 //{
-// //                rng.GetBytes(id);
-//                 //}
-//                 _playerDictionary[user.Id] = new Player(_playerDictionary[user.Id].HvzId, _playerDictionary[user.Id].DisplayName, user.Id, true);
-// //                _playerDictionary.Add(user.Id, Convert.ToHexString(id), user.Username, true);
-// //                await ctx.Channel.SendMessageAsync($"OZ HvZ ID is {Convert.ToHexString(id)}");
-//                 _isOzSet = true;
-//                 await ctx.Channel.SendMessageAsync($"OZ is set");
-//                 await Save.WriteWholeSave(_playerDictionary, ctx.Guild.Id);
-//
-//             //} else {
-//                 //await ctx.Channel.SendMessageAsync($"Sorry friend, you don't have permission to use this command.");
-//             //}
-//         }
         
     }
 
