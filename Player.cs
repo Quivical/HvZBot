@@ -8,19 +8,19 @@ namespace PlayerStruct
 
         public bool IsOz { get; init; }
         
-        public ulong ID { get; init; }
+        public ulong Id { get; init; }
 
         public Player(string hvzId, string displayName, ulong id, bool isOz)
         {
             HvzId = hvzId;
             DisplayName = displayName;
             IsOz = isOz;
-            ID = id;
+            Id = id;
         }
         
         public override string ToString()
         {
-            return $"HvZID: {HvzId}, Name: {DisplayName}, OZ? {IsOz}, UserID: {ID}";
+            return $"HvZID: {HvzId}, Name: {DisplayName}, OZ? {IsOz}, UserID: {Id}";
         }        
     }
 }

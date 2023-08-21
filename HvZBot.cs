@@ -1,5 +1,4 @@
-﻿using DiscordBot.commands;
-using DSharpPlus;
+﻿using DSharpPlus;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using DSharpPlus.Entities;
@@ -51,7 +50,6 @@ namespace DiscordBot
             slash.RegisterCommands<SlashCommands>(830887192028250185);
             slash.RegisterCommands<SlashCommands>(1070921235283849306);
 
-
             DiscordActivity status = new("HvZ at Goucher College!", ActivityType.Playing);
 
             await Client.ConnectAsync(status);
@@ -60,7 +58,7 @@ namespace DiscordBot
         
         public Task OnGuildCreated(DiscordClient client, GuildCreateEventArgs e)
         {
-            Console.WriteLine(e.Guild.Id);
+            Save.RecordNewServer(e.Guild.Id);
             return Task.CompletedTask;
         }
     }

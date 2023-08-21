@@ -1,51 +1,36 @@
 using System.Security.Cryptography;
 using DSharpPlus;
+using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
-using Microsoft.Data.Sqlite;
 
-namespace DiscordBot.commands
+namespace DiscordBot
 {
     public class SlashCommands : ApplicationCommandModule
     {
-        private DiscordChannel? _channelRegistration { get; set; }
-        private DiscordChannel? _tagAnnouncements { get; set; }
-        private DiscordChannel? _tagChannel { get; set; }
-        private bool _isOzSet { get; set; } = false;
-        private PlayerDictionary? _playerDictionary { get; set; }
-
-        [SlashCommand("test", "A slash command made to test the DSharpPlus Slash Commands extension!")]
-        public async Task TestCommand(InteractionContext ctx)
-        {
-            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Success!"));
-        }
-        
-        [SlashCommand("announcepresence", "A slash command made to announce the presence of the bot in your server to the database.")]
-        public async Task AnnouncePresence(InteractionContext ctx)
-        {
-            await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
-
-            string message = await Save.RecordNewServer(ctx.Guild.Id);
-            
-            await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(message));
-            
-        }
+        #region Class Variables
+        private DiscordChannel? ChannelRegistration { get; set; }
+        private DiscordChannel? TagAnnouncements { get; set; }
+        private DiscordChannel? TagChannel { get; set; }
+        private bool IsOzSet { get; set; } = false;
+        private PlayerDictionary? PlayerDictionary { get; set; }
+        #endregion
         
         [SlashCommand("quicksetup", "Set up the game for testing quickly."), SlashRequireUserPermissions(Permissions.ManageChannels)]
         public async Task QuickSetup(InteractionContext ctx, [Option("channel", "Channel to use for all required commands")] DiscordChannel channel)
         {
             await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
-            _channelRegistration = channel;
-            _tagAnnouncements = channel;
-            _tagChannel = channel;
+            ChannelRegistration = channel;
+            TagAnnouncements = channel;
+            TagChannel = channel;
             await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("Test game has been set up."));
         }
         
         [SlashCommand("setchannelreg", "Set a registration channel"), SlashRequireUserPermissions(Permissions.ManageChannels)]
         public async Task SetChannelRegistration(InteractionContext ctx, [Option("channel", "The channel you would like registration logs sent to")] DiscordChannel channel)
         {
-                _channelRegistration = channel;
+                ChannelRegistration = channel;
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"Channel registration set to {channel.ToString()!}"));
         }
 
@@ -53,13 +38,13 @@ namespace DiscordBot.commands
         public async Task RegisterHvZId(InteractionContext ctx)
         {
             await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Registering..."));
-            if (_channelRegistration == null)
+            if (ChannelRegistration == null)
             {
                 await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("Registration for HvZ is not open yet!"));
             }
-            else if (_playerDictionary!.ContainsKey(ctx.Member!.Id))
+            else if (PlayerDictionary!.ContainsKey(ctx.Member!.Id))
             {
-                var id = _playerDictionary.GetValueOrDefault(ctx.Member.Id);
+                var id = PlayerDictionary.GetValueOrDefault(ctx.Member.Id);
                 await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent($"You are already registered! Your HvZ ID is {id.HvzId}"));
             }
             else
@@ -72,7 +57,7 @@ namespace DiscordBot.commands
                     rng.GetBytes(id);
                 }
                 restart:
-                foreach (var player in _playerDictionary) {
+                foreach (var player in PlayerDictionary) {
                     if (player.Value.HvzId == Convert.ToHexString(id))
                     {
                         using (var rng = RandomNumberGenerator.Create())
@@ -82,12 +67,12 @@ namespace DiscordBot.commands
                         goto restart;
                     }
                 }
-                _playerDictionary.Add(ctx.Member.Id, Convert.ToHexString(id), ctx.Member.DisplayName);
+                PlayerDictionary.Add(ctx.Member.Id, Convert.ToHexString(id), ctx.Member.DisplayName);
                 await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent($"Your HvZ ID is {Convert.ToHexString(id)}"));
 
                 //await Save.WriteWholeSave(_playerDictionary, ctx.Guild.Id);
                 
-                await _channelRegistration.SendMessageAsync($"{ctx.Member.DisplayName} has HvZ ID of {Convert.ToHexString(id)}");
+                await ChannelRegistration.SendMessageAsync($"{ctx.Member.DisplayName} has HvZ ID of {Convert.ToHexString(id)}");
                 
 
             }
@@ -96,14 +81,14 @@ namespace DiscordBot.commands
         [SlashCommand("settagannounce", "Set a tag announcement channel"), SlashRequireUserPermissions(Permissions.ManageChannels)]
         public async Task SetChannelAnnouncement(InteractionContext ctx, [Option("channel", "The channel you would like to announce tags in")] DiscordChannel channel)
         {
-                _tagAnnouncements = channel;
+                TagAnnouncements = channel;
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"Channel for tag announcements is set to {channel.ToString()}"));
         }
         
         [SlashCommand("settagchannel", "Set specific tag channel"), SlashRequireUserPermissions(Permissions.ManageChannels)]
         public async Task SetTagChannel(InteractionContext ctx, [Option("channel", "The channel you would like people to report their tags in")] DiscordChannel channel)
         {
-                _tagChannel = channel;
+                TagChannel = channel;
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"Channel for tag reporting is set to {channel.ToString()}"));
         }
         
@@ -117,6 +102,12 @@ namespace DiscordBot.commands
             //save.WriteWholeSave();
         }
         
+        [SlashCommand("fetchservers", "See all servers in the database"), SlashRequireOwner, Hidden]
+        public async Task FetchServers(InteractionContext ctx)
+        {
+            var response = Save.FetchServers().Result;
+            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(response));
+        }
         
     }
 
