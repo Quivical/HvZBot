@@ -1,9 +1,11 @@
+#region Usings
 using System.Security.Cryptography;
 using DSharpPlus;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
+#endregion
 
 namespace DiscordBot
 {
@@ -90,16 +92,6 @@ namespace DiscordBot
         {
                 TagChannel = channel;
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"Channel for tag reporting is set to {channel.ToString()}"));
-        }
-        
-        [SlashCommand("save", "Save a player")]
-        public async Task SavePlayer(InteractionContext ctx, [Option("player", "The player you would like to save")] DiscordUser player)
-        {
-            PlayerDictionary pd = new PlayerDictionary(); 
-            pd.Add(player.Id, "0000", player.Username);
-            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Channel"));
-            // deleted depreciated class 'Save', will be replaced with SQLite database
-            //save.WriteWholeSave();
         }
         
         [SlashCommand("fetchservers", "See all servers in the database"), SlashRequireOwner, Hidden]
