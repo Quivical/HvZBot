@@ -40,7 +40,6 @@ namespace DiscordBot
             };
             this.Client = new DiscordClient(cfg);
             this.DiscordServices = new ServiceCollection()
-                .AddSingleton<PlayerDictionary>()
                 .BuildServiceProvider();
 
             this.Client.GuildCreated += OnGuildCreated;

@@ -16,7 +16,6 @@ namespace DiscordBot
         private DiscordChannel? TagAnnouncements { get; set; }
         private DiscordChannel? TagChannel { get; set; }
         private bool IsOzSet { get; set; } = false;
-        private PlayerDictionary? PlayerDictionary { get; set; }
         #endregion
         
         [SlashCommand("quicksetup", "Set up the game for testing quickly."), SlashRequireUserPermissions(Permissions.ManageChannels)]
@@ -39,45 +38,44 @@ namespace DiscordBot
         [SlashCommand("register", "Use this command to register for your HvZ ID code")]
         public async Task RegisterHvZId(InteractionContext ctx)
         {
-            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Registering..."));
-            if (ChannelRegistration == null)
-            {
-                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("Registration for HvZ is not open yet!"));
-            }
-            else if (PlayerDictionary!.ContainsKey(ctx.Member!.Id))
-            {
-                var id = PlayerDictionary.GetValueOrDefault(ctx.Member.Id);
-                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent($"You are already registered! Your HvZ ID is {id.HvzId}"));
-            }
-            else
-            {
-
-                byte[] id = new byte[2];
-
-                using (var rng = RandomNumberGenerator.Create())
-                {
-                    rng.GetBytes(id);
-                }
-                restart:
-                foreach (var player in PlayerDictionary) {
-                    if (player.Value.HvzId == Convert.ToHexString(id))
-                    {
-                        using (var rng = RandomNumberGenerator.Create())
-                        {
-                            rng.GetBytes(id);
-                        }
-                        goto restart;
-                    }
-                }
-                PlayerDictionary.Add(ctx.Member.Id, Convert.ToHexString(id), ctx.Member.DisplayName);
-                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent($"Your HvZ ID is {Convert.ToHexString(id)}"));
-
-                //await Save.WriteWholeSave(_playerDictionary, ctx.Guild.Id);
-                
-                await ChannelRegistration.SendMessageAsync($"{ctx.Member.DisplayName} has HvZ ID of {Convert.ToHexString(id)}");
-                
-
-            }
+            // await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Registering..."));
+            // if (ChannelRegistration == null)
+            // {
+            //     await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("Registration for HvZ is not open yet!"));
+            // }
+            // else if (PlayerDictionary!.ContainsKey(ctx.Member!.Id))
+            // {
+            //     var id = PlayerDictionary.GetValueOrDefault(ctx.Member.Id); // update id pull
+            //     await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent($"You are already registered! Your HvZ ID is {id.HvzId}"));
+            // }
+            // else
+            // {
+            //
+            //     byte[] id = new byte[2];
+            //
+            //     using (var rng = RandomNumberGenerator.Create()) // get rid of the dumb ls and 1s and is and Is
+            //     {
+            //         rng.GetBytes(id);
+            //     }
+            //     restart:
+            //     foreach (var player in PlayerDictionary) { // eh this probably needs updates too
+            //         if (player.Value.HvzId == Convert.ToHexString(id))
+            //         {
+            //             using (var rng = RandomNumberGenerator.Create())
+            //             {
+            //                 rng.GetBytes(id);
+            //             }
+            //             goto restart;
+            //         }
+            //     }
+            //     PlayerDictionary.Add(ctx.Member.Id, Convert.ToHexString(id), ctx.Member.DisplayName); // update db entry
+            //     await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent($"Your HvZ ID is {Convert.ToHexString(id)}"));
+            //
+            //     //await Save.WriteWholeSave(_playerDictionary, ctx.Guild.Id);
+            //     
+            //     await ChannelRegistration.SendMessageAsync($"{ctx.Member.DisplayName} has HvZ ID of {Convert.ToHexString(id)}");
+            //     
+            // }
         }
 
         [SlashCommand("settagannounce", "Set a tag announcement channel"), SlashRequireUserPermissions(Permissions.ManageChannels)]
@@ -101,6 +99,20 @@ namespace DiscordBot
             await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(response));
         }
         
+        [SlashCommand("fetchplayer", "See a player"), SlashRequireOwner, Hidden]
+        public async Task FetchPlayer(InteractionContext ctx, [Option("player", "player to make")] DiscordUser user)
+        {
+            var response = Save.FindPlayer(ctx.Guild.Id, user.Id).Result.ToString();
+            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(response));
+        }
+        
+        [SlashCommand("insertplayer", "Make a player"), SlashRequireOwner, Hidden]
+        public async Task InsertPlayer(InteractionContext ctx, [Option("player", "player to make")] DiscordUser user)
+        {
+            Player player = new Player(ctx.Guild.Id, user.Id, "HvZId");
+            Save.CreatePlayer(player);
+            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Player added"));
+        }
     }
 
     

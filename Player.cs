@@ -1,26 +1,44 @@
-namespace PlayerStruct
+namespace DiscordBot
 {
 
     public struct Player
     {
-        public string HvzId { get; init; }
-        public string DisplayName { get; init; }
+        public ulong ServerId { get; init; }
+        public ulong DiscordUserId { get; init; }
+        public string HvzId;
+        public bool IsOz;
+        public Status PlayerStatus;
 
-        public bool IsOz { get; init; }
-        
-        public ulong Id { get; init; }
-
-        public Player(string hvzId, string displayName, ulong id, bool isOz)
+        public enum Status
         {
+            Human,
+            Zombie,
+            Other,
+            Mod
+        }
+
+        public Player(ulong serverId, ulong discordUserId, string hvzId)
+        {
+            ServerId = serverId;
+            DiscordUserId = discordUserId;
             HvzId = hvzId;
-            DisplayName = displayName;
-            IsOz = isOz;
-            Id = id;
+            IsOz = false;
+            PlayerStatus = Status.Human;
+        }
+        
+        public void UpdateStatus(Status newStatus)
+        {
+            PlayerStatus = newStatus;
+        }
+
+        public void SetOz(bool setOz)
+        {
+            IsOz = setOz;
         }
         
         public override string ToString()
         {
-            return $"HvZID: {HvzId}, Name: {DisplayName}, OZ? {IsOz}, UserID: {Id}";
+            return $"HvZID: {HvzId}, OZ? {IsOz}, UserID: {DiscordUserId}";
         }        
     }
 }
