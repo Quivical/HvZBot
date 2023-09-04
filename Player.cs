@@ -38,7 +38,7 @@ namespace DiscordBot
         
         public override string ToString()
         {
-            return $"HvZID: {HvzId}, OZ? {IsOz}, UserID: {DiscordUserId}";
+            return $"HvZID: {HvzId}, OZ? {IsOz}, UserID: {DiscordUserId}, Discord Server:{ServerId}";
         }        
     }
 }

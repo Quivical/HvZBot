@@ -1,6 +1,3 @@
-using System.Data;
-using System.Globalization;
-using System.Runtime.InteropServices;
 using Microsoft.Data.Sqlite;
 
 namespace DiscordBot;
@@ -80,7 +77,7 @@ public static class Save
         return new Player(2,2, "2");
     }
     
-    public static async Task<Player> FindPlayer(ulong serverId, ulong discordId)
+    public static async Task<Player?> FindPlayer(ulong serverId, ulong discordId)
     {
         var sqliteCommand = ServerDataConnection.CreateCommand();
         
@@ -88,11 +85,16 @@ public static class Save
             @$"SELECT * FROM players 
          WHERE server_id = {serverId}
          AND discord_user_id = {discordId}";
-        
-        string query = await ReadQuery(sqliteCommand);
-        Console.WriteLine("Data:");
-        Console.WriteLine(query);
-        return new Player(3,3, "3");
+
+        await using var reader = await sqliteCommand.ExecuteReaderAsync();
+        while (reader.Read())
+        {
+            var name = reader.GetString(0);
+
+            return new Player((ulong) reader.GetInt64(0),(ulong) reader.GetInt64(1), reader.GetString(2));
+        }
+
+        return null;
     }
 
     private static async Task<string> ReadQuery(SqliteCommand command)
