@@ -35,47 +35,41 @@ namespace DiscordBot
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"Channel registration set to {channel.ToString()!}"));
         }
 
-        [SlashCommand("register", "Use this command to register for your HvZ ID code")]
-        public async Task RegisterHvZId(InteractionContext ctx)
+        [SlashCommand("register", "Use this command to register for HvZ and receive your HvZId!")]
+        public async Task Register(InteractionContext ctx)
         {
-            // await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Registering..."));
-            // if (ChannelRegistration == null)
-            // {
-            //     await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("Registration for HvZ is not open yet!"));
-            // }
-            // else if (PlayerDictionary!.ContainsKey(ctx.Member!.Id))
-            // {
-            //     var id = PlayerDictionary.GetValueOrDefault(ctx.Member.Id); // update id pull
-            //     await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent($"You are already registered! Your HvZ ID is {id.HvzId}"));
-            // }
-            // else
-            // {
-            //
-            //     byte[] id = new byte[2];
-            //
-            //     using (var rng = RandomNumberGenerator.Create()) // get rid of the dumb ls and 1s and is and Is
-            //     {
-            //         rng.GetBytes(id);
-            //     }
-            //     restart:
-            //     foreach (var player in PlayerDictionary) { // eh this probably needs updates too
-            //         if (player.Value.HvzId == Convert.ToHexString(id))
-            //         {
-            //             using (var rng = RandomNumberGenerator.Create())
-            //             {
-            //                 rng.GetBytes(id);
-            //             }
-            //             goto restart;
-            //         }
-            //     }
-            //     PlayerDictionary.Add(ctx.Member.Id, Convert.ToHexString(id), ctx.Member.DisplayName); // update db entry
-            //     await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent($"Your HvZ ID is {Convert.ToHexString(id)}"));
-            //
-            //     //await Save.WriteWholeSave(_playerDictionary, ctx.Guild.Id);
-            //     
-            //     await ChannelRegistration.SendMessageAsync($"{ctx.Member.DisplayName} has HvZ ID of {Convert.ToHexString(id)}");
-            //     
-            // }
+            string HvZId = "";
+            // get existing IDs and store temporarily
+            HashSet<string> HvZIds = Save.FetchHvZIds(ctx.Guild.Id).Result;
+            
+            // generate new one that doesn't match
+            Random r = new Random();
+            const string legalChars = "QWERTYPLKJHGFDXCABNM2346789";
+            const int size = 4;
+
+            while (HvZId == "" || HvZIds.Contains(HvZId))
+            {
+                HvZId = "";
+                for (int i = 0; i < size; i++)
+                {
+                    int x = r.Next(legalChars.Length);
+  
+                    HvZId = HvZId + legalChars[x];
+                }
+            }
+            
+            // add player to db
+            if (Save.CreatePlayer(new Player(ctx.Guild.Id, ctx.User.Id, HvZId)))
+            {
+                await ctx.Member.SendMessageAsync($"Your HvZId is: {HvZId}");
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"{ctx.User.Mention} registered for Humans versus Zombies!"));
+            }
+            else
+            {
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"You've already registered for HvZ! Check your DMs to see your HvZId."));
+                await ctx.Member.SendMessageAsync($"You've already registered!");
+            }
+            
         }
 
         [SlashCommand("settagannounce", "Set a tag announcement channel"), SlashRequireUserPermissions(Permissions.ManageChannels)]

@@ -34,12 +34,13 @@ public static class Save
         
     }
     
-    public static void CreatePlayer(Player player)
+    public static bool CreatePlayer(Player player)
     {
         var sqliteCommand = ServerDataConnection.CreateCommand();
 
-        int ozInt = player.IsOz ? 1 : 0;
+        if (FindPlayer(player.ServerId, player.DiscordUserId).Result != null) return false;
         
+        int ozInt = player.IsOz ? 1 : 0;
         sqliteCommand.CommandText = 
             $"""
              INSERT INTO players
@@ -50,31 +51,11 @@ public static class Save
                                  {ozInt},
                                  {(int) player.PlayerStatus})
              """;
-        Console.WriteLine($"""
-                           INSERT INTO players
-                                           VALUES (
-                                               {player.ServerId},
-                                               {player.DiscordUserId},
-                                               '{player.HvzId}',
-                                               {ozInt},
-                                               {(int) player.PlayerStatus})
-                           """);
+        
         sqliteCommand.ExecuteNonQuery();
-    }
 
-    public static async Task<Player> FindPlayer(ulong serverId, string hvzId)
-    {
-        var sqliteCommand = ServerDataConnection.CreateCommand();
-        
-        sqliteCommand.CommandText =
-            @$"SELECT * FROM players 
-         WHERE server_id = {serverId}
-         AND hvz_id = {hvzId}";
-        
-        string query = await ReadQuery(sqliteCommand);
-        Console.WriteLine("Data:");
-        Console.WriteLine(query);
-        return new Player(2,2, "2");
+        return true;
+
     }
     
     public static async Task<Player?> FindPlayer(ulong serverId, ulong discordId)
@@ -96,6 +77,27 @@ public static class Save
 
         return null;
     }
+    
+    public static async Task<HashSet<string>> FetchHvZIds(ulong serverId)
+    {
+        var sqliteCommand = ServerDataConnection.CreateCommand();
+        
+        sqliteCommand.CommandText =
+            @$"SELECT hvz_id FROM players 
+         WHERE server_id = {serverId}";
+
+        HashSet<string> HvZIdSet = new HashSet<string>();
+        
+        await using var reader = await sqliteCommand.ExecuteReaderAsync();
+        while (reader.Read())
+        {
+            var HvZId = reader.GetString(0);
+
+            HvZIdSet.Add(HvZId);
+        }
+
+        return HvZIdSet;
+    }
 
     private static async Task<string> ReadQuery(SqliteCommand command)
     {
@@ -109,4 +111,5 @@ public static class Save
 
         return query;
     }
+    
 }
