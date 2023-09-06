@@ -5,7 +5,7 @@ namespace DiscordBot
     {
         public ulong ServerId { get; init; }
         public ulong DiscordUserId { get; init; }
-        public string HvzId;
+        public string HvZId;
         public bool IsOz;
         public Status PlayerStatus;
 
@@ -21,7 +21,7 @@ namespace DiscordBot
         {
             ServerId = serverId;
             DiscordUserId = discordUserId;
-            HvzId = hvzId;
+            HvZId = hvzId;
             IsOz = false;
             PlayerStatus = Status.Human;
         }
@@ -38,7 +38,7 @@ namespace DiscordBot
         
         public override string ToString()
         {
-            return $"HvZID: {HvzId}, OZ? {IsOz}, UserID: {DiscordUserId}, Discord Server:{ServerId}";
+            return $"HvZID: {HvZId}, OZ? {IsOz}, UserID: {DiscordUserId}, Discord Server:{ServerId}";
         }        
     }
 }

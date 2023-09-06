@@ -48,6 +48,7 @@ namespace DiscordBot
     
             slash.RegisterCommands<SlashCommands>(830887192028250185);
             slash.RegisterCommands<SlashCommands>(1070921235283849306);
+            slash.RegisterCommands<SlashCommands>(1148742162259923065);
 
             DiscordActivity status = new("HvZ at Goucher College!", ActivityType.Playing);
 
@@ -57,7 +58,7 @@ namespace DiscordBot
         
         public Task OnGuildCreated(DiscordClient client, GuildCreateEventArgs e)
         {
-            Save.RecordNewServer(e.Guild.Id);
+            Save.CreateNewServer(e.Guild.Id);
             return Task.CompletedTask;
         }
     }
