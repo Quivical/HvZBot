@@ -18,6 +18,7 @@ namespace DiscordBot
                 {
                     if (clear)
                     {
+                        Console.WriteLine("Clearing");
                         Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.TagAnnouncementChannel, 0);
                         Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.TagReportingChannel, 0);
                         Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.RegistrationChannel, 0);
