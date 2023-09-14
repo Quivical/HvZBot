@@ -248,6 +248,7 @@ namespace DiscordBot
             if (tagger.IsOz)
             {
                 taggerName = "***The Original Zombie***";
+                tagger.Status = Player.Statuses.Zombie;
             }
             else
             {
