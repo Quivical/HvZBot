@@ -368,3 +368,4 @@ nohup.out
 Properties/launchSettings.json
 Properties/
 /data/
+ServerData.db

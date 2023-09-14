@@ -81,8 +81,8 @@ public static class Save
         {
             sqliteCommand.CommandText =
                 @$"UPDATE players
-                SET status = '{(int) newStatus}'
-                WHERE discord_user_id is {player.DiscordUserId}
+                SET status = {(int) newStatus}
+                WHERE discord_user_id is '{player.DiscordUserId}'
                 AND server_id is '{player.ServerId}'";
             sqliteCommand.ExecuteNonQuery();
             return true;
@@ -112,7 +112,7 @@ public static class Save
             sqliteCommand.CommandText =
                 @$"UPDATE players
                 SET is_oz = {ozInt}
-                WHERE discord_user_id is {userId}
+                WHERE discord_user_id is '{userId}'
                 AND server_id is '{serverId}'";
             sqliteCommand.ExecuteNonQuery();
             return true;
@@ -149,8 +149,8 @@ public static class Save
         
         sqliteCommand.CommandText =
             @$"SELECT * FROM players 
-         WHERE server_id = {serverId}
-         AND discord_user_id = {discordId}";
+         WHERE server_id = '{serverId}'
+         AND discord_user_id = '{discordId}'";
         
         await using var reader = await sqliteCommand.ExecuteReaderAsync();
         while (reader.Read())
@@ -168,7 +168,7 @@ public static class Save
         
         sqliteCommand.CommandText =
             @$"SELECT * FROM players 
-         WHERE server_id = {serverId}
+         WHERE server_id = '{serverId}'
          AND hvz_id = '{HvZId}'";
         
         await using var reader = await sqliteCommand.ExecuteReaderAsync();
@@ -187,7 +187,7 @@ public static class Save
         
         sqliteCommand.CommandText =
             @$"SELECT hvz_id FROM players 
-         WHERE server_id = {serverId}";
+         WHERE server_id = '{serverId}'";
 
         HashSet<string> HvZIdSet = new HashSet<string>();
         
