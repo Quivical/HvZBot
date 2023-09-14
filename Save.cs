@@ -76,14 +76,44 @@ public static class Save
 
     public static bool UpdatePlayerStatus(Player player, Player.Statuses newStatus)
     {
-        Console.WriteLine(player.ToString());
         var sqliteCommand = ServerDataConnection.CreateCommand();
         try
         {
             sqliteCommand.CommandText =
                 @$"UPDATE players
                 SET status = '{(int) newStatus}'
-                WHERE discord_user_id is {player.DiscordUserId}";
+                WHERE discord_user_id is {player.DiscordUserId}
+                AND server_id is '{player.ServerId}'";
+            sqliteCommand.ExecuteNonQuery();
+            return true;
+        }
+        catch
+        {
+            Console.WriteLine("Data entry failed");
+            return false;
+        }
+    }
+    
+    public static bool SetOz(ulong serverId, ulong userId, bool isOz = true)
+    {
+        int ozInt;
+        if (isOz)
+        {
+            ozInt = 1;
+        }
+        else
+        {
+            ozInt = 0;
+        }
+        
+        var sqliteCommand = ServerDataConnection.CreateCommand();
+        try
+        {
+            sqliteCommand.CommandText =
+                @$"UPDATE players
+                SET is_oz = {ozInt}
+                WHERE discord_user_id is {userId}
+                AND server_id is '{serverId}'";
             sqliteCommand.ExecuteNonQuery();
             return true;
         }

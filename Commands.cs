@@ -14,7 +14,7 @@ namespace DiscordBot
             public class ChannelCommands : ApplicationCommandModule
             {
                 [SlashCommand("all", "Sets all channels to the same channel. Useful for quick bot tests."), SlashRequireUserPermissions(Permissions.ManageChannels)]
-                public async Task QuickSetup(InteractionContext ctx, [Option("channel", "Channel to use for all other commands")] DiscordChannel channel, [Option("clear","Would you like to clear all channel settings? This pauses both gameplay and registration. Defaults to false.")] bool clear = false)
+                public async Task QuickSetup(InteractionContext ctx, [Option("channel", "Channel to use for all other commands")] DiscordChannel channel, [Option("clear","Clear all channel settings? This pauses both gameplay and registration. Defaults to false.")] bool clear = false)
                 {
                     if (clear)
                     {
@@ -35,7 +35,7 @@ namespace DiscordBot
                 }
 
                 [SlashCommand("tagannouncement", "Set a tag announcement channel"), SlashRequireUserPermissions(Permissions.ManageChannels)]
-                public async Task SetChannelAnnouncement(InteractionContext ctx, [Option("channel", "The channel you would like to announce tags in")] DiscordChannel channel, [Option("clear","Would you like to clear the tag announcement channel? This pauses tags. Defaults to false.")] bool clear = false)
+                public async Task SetChannelAnnouncement(InteractionContext ctx, [Option("channel", "The channel you would like to announce tags in")] DiscordChannel channel, [Option("clear","Clear the tag announcement channel? This pauses tags. Defaults to false.")] bool clear = false)
                 {
                     if (clear)
                     {
@@ -52,7 +52,7 @@ namespace DiscordBot
                 }
 
                 [SlashCommand("tagreporting", "Set a specific channel where zombies should report tags"), SlashRequireUserPermissions(Permissions.ManageChannels)]
-                public async Task SetTagChannel(InteractionContext ctx, [Option("channel", "The channel you would like people to report their tags in")] DiscordChannel channel, [Option("clear","Would you like to clear the tag announcement channel? This pauses tags. Defaults to false.")] bool clear = false)
+                public async Task SetTagChannel(InteractionContext ctx, [Option("channel", "The channel you would like people to report their tags in")] DiscordChannel channel, [Option("clear","Clear the tag announcement channel? This pauses tags. Defaults to false.")] bool clear = false)
                 {
                     //todo make this zombie only
                     if (clear)
@@ -70,7 +70,7 @@ namespace DiscordBot
                 }
 
                 [SlashCommand("registrationlogs", "Set a channel to log player registration to."), SlashRequireUserPermissions(Permissions.ManageChannels)] 
-                public async Task SetChannelRegistration(InteractionContext ctx, [Option("channel", "The channel you would like registration logs sent to")] DiscordChannel channel, [Option("clear","Would you like to clear the registration log channel? This pauses registration. Defaults to false.")] bool clear = false)
+                public async Task SetChannelRegistration(InteractionContext ctx, [Option("channel", "The channel you would like registration logs sent to")] DiscordChannel channel, [Option("clear","Clear the registration log channel? This pauses registration. Defaults to false.")] bool clear = false)
                 {
                     if (clear)
                     {
@@ -118,6 +118,15 @@ namespace DiscordBot
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                         new DiscordInteractionResponseBuilder().WithContent(
                             $"Zombie role has been established!"));
+                }
+                
+                [SlashCommand("oz", "Designates a player as the Original Zombie. This also hides their name in tag announcements."), SlashRequirePermissions(Permissions.ManageChannels)]
+                public async Task SetOz(InteractionContext ctx, [Option("oz","The player you'd like to make the original zombie.")] DiscordUser oz)
+                {
+                    Save.SetOz(ctx.Guild.Id, oz.Id);
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                        new DiscordInteractionResponseBuilder().WithContent(
+                            "The OZ has been set!"));
                 }
             }
             
@@ -285,13 +294,7 @@ namespace DiscordBot
         {
             await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                     new DiscordInteractionResponseBuilder().WithContent(
-                        $"A quick outline of the steps to set up the bot are as follows:\n\n1. Use '/set channel registrationlog'.\n2. Use '/set role' to create a new human/zombie role, or to point the bot to your existing roles.\n3. Once those have been done, registration should now be enabled.\n4. Players use '/register' to get their HvZId and the 'Human' Role.\n5. Before players are able to use '/tag <HvZId of tagged>', you must set the tag announcements channel and tag reporting channel with '/set channel'.\n6. '/tag' will take care of transferring tagged players out of the human channel and into the zombie channel.\n7. Have fun!"));
-        }
-        
-        [SlashCommand("setoz", "Designates a player as the Original Zombie. This also hides their name in tag announcements.")]
-        public async Task SetOz(InteractionContext ctx)
-        {
-            //todo
+                        $"A quick outline of the steps to set up the bot are as follows:\n\n1. Use '/set channel registrationlog'.\n2. Use '/set role' to create a new human/zombie role, or to point the bot to your existing roles.\n3. Once those have been done, registration should now be enabled.\n4. Players use '/register' to get their HvZId and the 'Human' Role.\n5. Before players are able to use '/tag <HvZId of tagged>', you must set the tag announcements channel and tag reporting channel with '/set channel'.\n6. '/tag' will take care of transferring tagged players out of the human channel and into the zombie channel.\n7. Have fun!\n\nPlease note that only those with the 'Manage Channels' permission are able to use moderator commands."));
         }
     }
 
