@@ -6,12 +6,14 @@ public static class Save
 {
     private static readonly SqliteConnection ServerDataConnection = new SqliteConnection($"Data Source=ServerData.db;");
     
-    public static class ServerField
+    public static class GuildField
     {
-        public const string ServerId = "id";
+        public const string GuildId = "id";
         public const string RegistrationChannel = "registration_channel";
         public const string TagAnnouncementChannel = "tag_announcement_channel";
         public const string TagReportingChannel = "tag_reporting_channel";
+        public const string HumanRole = "human_role";
+        public const string ZombieRole = "zombie_role";
     }
     
     static Save()
@@ -19,48 +21,60 @@ public static class Save
         ServerDataConnection.Open();
     }
     
-    public static void CreateNewServer(ulong id)
+    public static void CreateNewGuild(ulong id)
     {
         var sqliteCommand = ServerDataConnection.CreateCommand();
         
         sqliteCommand.CommandText = 
-            @$"INSERT INTO servers VALUES ({id}, null, null, null);";
+            @$"INSERT INTO servers VALUES ('{id}', '0', '0', '0', '0', '0');";
         sqliteCommand.ExecuteNonQuery();
     }
-    
-    public static async Task<string> FetchServers()
-    {
-        var sqliteCommand = ServerDataConnection.CreateCommand();
-        
-        sqliteCommand.CommandText =
-            @"SELECT * FROM servers";
-        return await ReadQuery(sqliteCommand);
-    }
 
-    public static ulong GetServerField(ulong serverId, string fieldToGet)
+    public static async Task<ulong> GetGuildField(ulong serverId, string fieldToGet)
     {
         var sqliteCommand = ServerDataConnection.CreateCommand();
-        // it's all bonked
         sqliteCommand.CommandText =
             @$"SELECT {fieldToGet} FROM servers
-                where id is {serverId}";
-        SqliteDataReader sqlReader = sqliteCommand.ExecuteReader();
-        Console.WriteLine(sqlReader.GetString(sqlReader.GetOrdinal(fieldToGet)));
-        if (sqlReader.GetString(sqlReader.GetOrdinal(fieldToGet)) is null)
-        {
-            return 0;
-        }
-
-        return Convert.ToUInt64(sqlReader.GetString(sqlReader.GetOrdinal(fieldToGet)));
+                where id is '{serverId}'";
+        return Convert.ToUInt64(await ReadQuery(sqliteCommand));
     }
     
-    public static bool UpdateServerField(ulong serverId, string fieldToUpdate, ulong newValue)
+    public static async Task<Guild> GetGuild(ulong serverId)
     {
+        var sqliteCommand = ServerDataConnection.CreateCommand();
+        sqliteCommand.CommandText =
+            @$"SELECT * FROM servers
+                where id is '{serverId}'";
         
-        return false;
+        await using var reader = await sqliteCommand.ExecuteReaderAsync();
+        while (reader.Read())
+        {
+            var name = reader.GetString(0);
+            return new Guild((ulong) reader.GetInt64(0),(ulong) reader.GetInt64(1), (ulong) reader.GetInt64(2), (ulong) reader.GetInt64(3), (ulong) reader.GetInt64(4), (ulong) reader.GetInt64(5));
+        }
+
+        return new Guild(0, 0, 0, 0, 0, 0);
+    }
+    
+    public static bool UpdateGuildField(ulong serverId, string fieldToUpdate, ulong newValue)
+    {
+        var sqliteCommand = ServerDataConnection.CreateCommand();
+        try
+        {
+            sqliteCommand.CommandText =
+                @$"UPDATE servers
+                SET {fieldToUpdate} = '{newValue}'
+                WHERE id is '{serverId}'";
+            sqliteCommand.ExecuteNonQuery();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
-    public static void UpdatePlayerStatus(Player player, Player.Status newStatus)
+    public static void UpdatePlayerStatus(Player player, Player.Statuses newStatus)
     {
         
     }
@@ -78,7 +92,7 @@ public static class Save
                                  {player.DiscordUserId},
                                  '{player.HvZId}',
                                  {ozInt},
-                                 {(int) player.PlayerStatus})
+                                 {(int) player.Status})
              """;
         
         sqliteCommand.ExecuteNonQuery();
@@ -97,9 +111,28 @@ public static class Save
         while (reader.Read())
         {
             var name = reader.GetString(0);
-            return new Player((ulong) reader.GetInt64(0),(ulong) reader.GetInt64(1), reader.GetString(2));
+            return new Player((ulong) reader.GetInt64(0),(ulong) reader.GetInt64(1), reader.GetString(2), reader.GetBoolean(3),(Player.Statuses) reader.GetInt32(4));
         }
         
+        return null;
+    }
+    
+    public static async Task<Player?> GetPlayerData(ulong serverId, string HvZId)
+    {
+        var sqliteCommand = ServerDataConnection.CreateCommand();
+        
+        sqliteCommand.CommandText =
+            @$"SELECT * FROM players 
+         WHERE server_id = {serverId}
+         AND hvz_id = '{HvZId}'";
+        
+        await using var reader = await sqliteCommand.ExecuteReaderAsync();
+        while (reader.Read())
+        {
+            var name = reader.GetString(0);
+            return new Player((ulong) reader.GetInt64(0),(ulong) reader.GetInt64(1), reader.GetString(2), reader.GetBoolean(3),(Player.Statuses) reader.GetInt32(4));
+        }
+
         return null;
     }
     
@@ -130,7 +163,6 @@ public static class Save
         await using var reader = await command.ExecuteReaderAsync();
         while (reader.Read())
         {
-            Console.WriteLine(query);
             query = query + reader.GetString(0) + "\n";
         }
 

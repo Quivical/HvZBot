@@ -58,7 +58,7 @@ namespace DiscordBot
         
         public Task OnGuildCreated(DiscordClient client, GuildCreateEventArgs e)
         {
-            Save.CreateNewServer(e.Guild.Id);
+            Save.CreateNewGuild(e.Guild.Id);
             return Task.CompletedTask;
         }
     }
