@@ -74,9 +74,24 @@ public static class Save
         }
     }
 
-    public static void UpdatePlayerStatus(Player player, Player.Statuses newStatus)
+    public static bool UpdatePlayerStatus(Player player, Player.Statuses newStatus)
     {
-        
+        Console.WriteLine(player.ToString());
+        var sqliteCommand = ServerDataConnection.CreateCommand();
+        try
+        {
+            sqliteCommand.CommandText =
+                @$"UPDATE players
+                SET status = '{(int) newStatus}'
+                WHERE discord_user_id is {player.DiscordUserId}";
+            sqliteCommand.ExecuteNonQuery();
+            return true;
+        }
+        catch
+        {
+            Console.WriteLine("Data entry failed");
+            return false;
+        }
     }
     
     public static void CreatePlayer(Player player)

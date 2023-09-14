@@ -54,7 +54,7 @@ namespace DiscordBot
         }
 
         [SlashCommand("setroles", "Creates Human and Zombie roles, or allows you to choose your own"), SlashRequireUserPermissions(Permissions.ManageChannels)]
-        public async Task EstablishRoles(InteractionContext ctx, [Option("Human Role", "The role you'd like to use for Humans")] DiscordRole? humanRole = null, [Option("Zombie Role", "The role you'd like to use for Zombies")] DiscordRole? zombieRole = null)
+        public async Task EstablishRoles(InteractionContext ctx, [Option("HumanRole", "The role you'd like to use for Humans")] DiscordRole? humanRole = null, [Option("ZombieRole", "The role you'd like to use for Zombies")] DiscordRole? zombieRole = null)
         {
             if (humanRole == null)
             {
@@ -69,6 +69,10 @@ namespace DiscordBot
 
             Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.HumanRole, humanRole.Id);
             Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.ZombieRole, zombieRole.Id);
+            
+            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                new DiscordInteractionResponseBuilder().WithContent(
+                    $"Roles have been established!"));
         }
         
         [SlashCommand("register", "Use this command to register for HvZ and receive your HvZId!")]
@@ -183,15 +187,14 @@ namespace DiscordBot
             string taggerName;
             if (tagger.IsOz)
             {
-                taggerName = "The *Original Zombie*";
+                taggerName = "***The Original Zombie***";
             }
             else
             {
-                taggerName = $"@{tagger.DiscordUserId}";
+                taggerName = $"<@{tagger.DiscordUserId}>";
             }
 
             //check if tagger is a zombie
-            Console.WriteLine(tagger.Status);
             if (tagger.Status != Player.Statuses.Zombie)
             {
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
@@ -210,11 +213,20 @@ namespace DiscordBot
             }
             
             //perform channel/role movements
-            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
-                new DiscordInteractionResponseBuilder().WithContent(
-                    $"Tag successfully passed all checks!"));
+            DiscordMember taggedDiscordUser = ctx.Guild.GetMemberAsync(tagged.DiscordUserId).Result;
+            
+            DiscordRole zombieRole = ctx.Guild.GetRole(guild.ZombieRole);
+            await taggedDiscordUser.GrantRoleAsync(zombieRole);
+            DiscordRole humanRole = ctx.Guild.GetRole(guild.HumanRole);
+            await taggedDiscordUser.RevokeRoleAsync(humanRole);
+
+            Save.UpdatePlayerStatus(tagged, Player.Statuses.Zombie);
             
             //announce the tag
+            await ctx.Guild.GetChannel(guild.TagAnnouncementChannel).SendMessageAsync($"{taggerName} tagged <@{tagged.DiscordUserId}>!");
+            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                new DiscordInteractionResponseBuilder().WithContent(
+                    $"Nice tag!"));
         }
         
         [SlashCommand("help", "Explains how to use this bot")]
