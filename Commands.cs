@@ -1,85 +1,133 @@
-#region Usings
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
 
-#endregion
-
 namespace DiscordBot
 {
     public class SlashCommands : ApplicationCommandModule
     {
-        [SlashCommandGroup("setchannel", "Define key servers for using the bot")]
-        public class GroupContainer : ApplicationCommandModule
+        [SlashCommandGroup("set", "Set up the bot's required information")]
+        public class SetCommands : ApplicationCommandModule
         {
-            [SlashCommand("all", "Sets all channels to the same channel. Useful for quick bot tests."), SlashRequireUserPermissions(Permissions.ManageChannels)]
-            public async Task QuickSetup(InteractionContext ctx, [Option("channel", "Channel to use for all other commands")] DiscordChannel channel)
+            [SlashCommandGroup("channel", "Set up channels")]
+            public class ChannelCommands : ApplicationCommandModule
             {
-                Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.TagAnnouncementChannel, channel.Id);
-                Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.TagReportingChannel, channel.Id);
-                Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.RegistrationChannel, channel.Id);
-                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"Channel for all commands set to {channel}"));
-            }
-            
-            [SlashCommand("tagannouncement", "Set a tag announcement channel"), SlashRequireUserPermissions(Permissions.ManageChannels)]
-            public async Task SetChannelAnnouncement(InteractionContext ctx, [Option("channel", "The channel you would like to announce tags in")] DiscordChannel channel)
-            {
-                Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.TagAnnouncementChannel, channel.Id);
-                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"Channel for tag announcements is set to {channel.ToString()}"));
-            }
-            
-            [SlashCommand("tagreporting", "Set a specific channel where players should report tags"), SlashRequireUserPermissions(Permissions.ManageChannels)]
-            public async Task SetTagChannel(InteractionContext ctx, [Option("channel", "The channel you would like people to report their tags in")] DiscordChannel channel)
-            {
-                Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.TagReportingChannel, channel.Id);
-                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"Channel for tag reporting is set to {channel.ToString()}"));
-            }
-            
-            [SlashCommand("registrationlogs", "Set a channel to log player registration to."), SlashRequireUserPermissions(Permissions.ManageChannels)]
-            public async Task SetChannelRegistration(InteractionContext ctx, [Option("channel", "The channel you would like registration logs sent to")] DiscordChannel channel)
-            {
-                Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.RegistrationChannel, channel.Id);
-                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"Channel registration set to {channel}"));
-            }
-            
-            [SlashCommand("clear", "Clears all previously set channels. This pauses both registration and gameplay."), SlashRequireUserPermissions(Permissions.ManageChannels)]
-            public async Task ClearSetChannels(InteractionContext ctx)
-            {
-                Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.TagAnnouncementChannel, 0);
-                Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.TagReportingChannel, 0);
-                Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.RegistrationChannel, 0);
-                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"Channels settings have been cleared.\nPlease note that this prevents both registration and the continuation of the game."));
-            }
-        }
+                [SlashCommand("all", "Sets all channels to the same channel. Useful for quick bot tests."), SlashRequireUserPermissions(Permissions.ManageChannels)]
+                public async Task QuickSetup(InteractionContext ctx, [Option("channel", "Channel to use for all other commands")] DiscordChannel channel, [Option("clear","Would you like to clear all channel settings? This pauses both gameplay and registration. Defaults to false.")] bool clear = false)
+                {
+                    if (clear)
+                    {
+                        Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.TagAnnouncementChannel, 0);
+                        Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.TagReportingChannel, 0);
+                        Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.RegistrationChannel, 0);
+                        await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                            new DiscordInteractionResponseBuilder().WithContent(
+                                $"Channels settings have been cleared.\nPlease note that this prevents both registration and the continuation of the game."));
+                        return;
+                    }
+                    Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.TagAnnouncementChannel, channel.Id);
+                    Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.TagReportingChannel, channel.Id);
+                    Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.RegistrationChannel, channel.Id);
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                        new DiscordInteractionResponseBuilder().WithContent(
+                            $"Channel for all commands set to {channel}"));
+                }
 
-        [SlashCommand("setroles", "Creates Human and Zombie roles, or allows you to choose your own"), SlashRequireUserPermissions(Permissions.ManageChannels)]
-        public async Task EstablishRoles(InteractionContext ctx, [Option("HumanRole", "The role you'd like to use for Humans")] DiscordRole? humanRole = null, [Option("ZombieRole", "The role you'd like to use for Zombies")] DiscordRole? zombieRole = null)
-        {
-            if (humanRole == null)
-            {
-                //make a new role
-                humanRole = ctx.Guild.CreateRoleAsync("Human", color: DiscordColor.Purple, reason: "Creating role for human players").Result;
+                [SlashCommand("tagannouncement", "Set a tag announcement channel"), SlashRequireUserPermissions(Permissions.ManageChannels)]
+                public async Task SetChannelAnnouncement(InteractionContext ctx, [Option("channel", "The channel you would like to announce tags in")] DiscordChannel channel, [Option("clear","Would you like to clear the tag announcement channel? This pauses tags. Defaults to false.")] bool clear = false)
+                {
+                    if (clear)
+                    {
+                        Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.TagAnnouncementChannel, 0);
+                        await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                            new DiscordInteractionResponseBuilder().WithContent(
+                                $"Tag announcement channel has been reset.\nPlease note that this prevents tags/the continuation of the game."));
+                        return;
+                    }
+                    Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.TagAnnouncementChannel, channel.Id);
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                        new DiscordInteractionResponseBuilder().WithContent(
+                            $"Channel for tag announcements is set to {channel.ToString()}"));
+                }
+
+                [SlashCommand("tagreporting", "Set a specific channel where zombies should report tags"), SlashRequireUserPermissions(Permissions.ManageChannels)]
+                public async Task SetTagChannel(InteractionContext ctx, [Option("channel", "The channel you would like people to report their tags in")] DiscordChannel channel, [Option("clear","Would you like to clear the tag announcement channel? This pauses tags. Defaults to false.")] bool clear = false)
+                {
+                    //todo make this zombie only
+                    if (clear)
+                    {
+                        Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.TagReportingChannel, 0);
+                        await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                            new DiscordInteractionResponseBuilder().WithContent(
+                                $"Tag reporting channel has been reset.\nPlease note that this prevents tags/the continuation of the game."));
+                        return;
+                    }
+                    Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.TagReportingChannel, channel.Id);
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                        new DiscordInteractionResponseBuilder().WithContent(
+                            $"Channel for tag reporting is set to {channel.ToString()}"));
+                }
+
+                [SlashCommand("registrationlogs", "Set a channel to log player registration to."), SlashRequireUserPermissions(Permissions.ManageChannels)] 
+                public async Task SetChannelRegistration(InteractionContext ctx, [Option("channel", "The channel you would like registration logs sent to")] DiscordChannel channel, [Option("clear","Would you like to clear the registration log channel? This pauses registration. Defaults to false.")] bool clear = false)
+                {
+                    if (clear)
+                    {
+                        Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.RegistrationChannel, 0);
+                        await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                            new DiscordInteractionResponseBuilder().WithContent(
+                                $"Registration log channel has been reset.\nPlease note that this prevents new players from registering."));
+                        return;
+                    }
+                    Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.RegistrationChannel, channel.Id);
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                        new DiscordInteractionResponseBuilder().WithContent($"Channel registration set to {channel}"));
+                }
             }
 
-            if (zombieRole == null)
+            [SlashCommandGroup("role", "Creates Human and Zombie roles, or allows you to choose your own")]
+            public class RoleCommands : ApplicationCommandModule
             {
-                zombieRole = ctx.Guild.CreateRoleAsync("Zombie", color: DiscordColor.Red, reason: "Creating role for zombie players").Result;
-            }
+                [SlashCommand("human", "Create or designate a human role"), SlashRequireUserPermissions(Permissions.ManageChannels)]
+                public async Task EstablishHuman(InteractionContext ctx, [Option("HumanRole", "The role you'd like to use for Humans")] DiscordRole? humanRole = null)
+                {
+                    if (humanRole == null)
+                    {
+                        //make a new role
+                        humanRole = ctx.Guild.CreateRoleAsync("Human", color: DiscordColor.Purple, reason: "Creating role for human players").Result;
+                    }
 
-            Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.HumanRole, humanRole.Id);
-            Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.ZombieRole, zombieRole.Id);
+                    Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.HumanRole, humanRole.Id);
             
-            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
-                new DiscordInteractionResponseBuilder().WithContent(
-                    $"Roles have been established!"));
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                        new DiscordInteractionResponseBuilder().WithContent(
+                            $"Human role has been established!"));
+                }
+                
+                [SlashCommand("zombie", "Create or designate a zombie role"), SlashRequireUserPermissions(Permissions.ManageChannels)]
+                public async Task EstablishZombie(InteractionContext ctx, [Option("ZombieRole", "The role you'd like to use for Zombies")] DiscordRole? zombieRole = null)
+                {
+                    if (zombieRole == null)
+                    {
+                        zombieRole = ctx.Guild.CreateRoleAsync("Zombie", color: DiscordColor.Red, reason: "Creating role for zombie players").Result;
+                    }
+
+                    Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.ZombieRole, zombieRole.Id);
+            
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                        new DiscordInteractionResponseBuilder().WithContent(
+                            $"Zombie role has been established!"));
+                }
+            }
+            
         }
         
         [SlashCommand("register", "Use this command to register for HvZ and receive your HvZId!")]
         public async Task Register(InteractionContext ctx)
         {
             Guild guild = Save.GetGuild(ctx.Guild.Id).Result;
-            if (guild.RegistrationChannel == 0)
+            if (guild.RegistrationChannel == 0 || guild.HumanRole == 0 || guild.ZombieRole == 0)
             {
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                     new DiscordInteractionResponseBuilder().WithContent(
@@ -117,7 +165,10 @@ namespace DiscordBot
 
             // add player to db
             Save.CreatePlayer(new Player(ctx.Guild.Id, ctx.User.Id, HvZId, false, Player.Statuses.Human));
-
+            //give role
+            DiscordRole human = ctx.Guild.GetRole(guild.HumanRole);
+            await ctx.Member.GrantRoleAsync(human);
+            
             try
             {
                 await ctx.Member.SendMessageAsync($"Your HvZId for *{ctx.Guild.Name}* is: **{HvZId}**");
@@ -234,10 +285,10 @@ namespace DiscordBot
         {
             await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                     new DiscordInteractionResponseBuilder().WithContent(
-                        $"Hi! Juliet here.\n\nIf I haven't fleshed this out by release, please bother me about it! This is a really easy command to implement, it just kind of needs to come last."));
+                        $"A quick outline of the steps to set up the bot are as follows:\n\n1. Use '/set channel registrationlog'.\n2. Use '/set role' to create a new human/zombie role, or to point the bot to your existing roles.\n3. Once those have been done, registration should now be enabled.\n4. Players use '/register' to get their HvZId and the 'Human' Role.\n5. Before players are able to use '/tag <HvZId of tagged>', you must set the tag announcements channel and tag reporting channel with '/set channel'.\n6. '/tag' will take care of transferring tagged players out of the human channel and into the zombie channel.\n7. Have fun!"));
         }
         
-        [SlashCommand("setoz", "Designates a player as the OZ. This also hides their name in tag announcements.")]
+        [SlashCommand("setoz", "Designates a player as the Original Zombie. This also hides their name in tag announcements.")]
         public async Task SetOz(InteractionContext ctx)
         {
             //todo
