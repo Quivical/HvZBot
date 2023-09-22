@@ -94,7 +94,27 @@ public static class Save
         }
     }
     
-    public static bool SetOz(ulong serverId, ulong userId, bool isOz = true)
+    public static bool UpdatePlayerStatus(ulong guildId, ulong userId, Player.Statuses newStatus)
+    {
+        var sqliteCommand = ServerDataConnection.CreateCommand();
+        try
+        {
+            sqliteCommand.CommandText =
+                @$"UPDATE players
+                SET status = {(int) newStatus}
+                WHERE discord_user_id is '{userId}'
+                AND server_id is '{guildId}'";
+            sqliteCommand.ExecuteNonQuery();
+            return true;
+        }
+        catch
+        {
+            Console.WriteLine("Data entry failed");
+            return false;
+        }
+    }
+    
+    public static bool SetOz(ulong guildId, ulong userId, bool isOz = true)
     {
         int ozInt;
         if (isOz)
@@ -113,7 +133,7 @@ public static class Save
                 @$"UPDATE players
                 SET is_oz = {ozInt}
                 WHERE discord_user_id is '{userId}'
-                AND server_id is '{serverId}'";
+                AND server_id is '{guildId}'";
             sqliteCommand.ExecuteNonQuery();
             return true;
         }
@@ -138,6 +158,19 @@ public static class Save
                                  '{player.HvZId}',
                                  {ozInt},
                                  {(int) player.Status})
+             """;
+        
+        sqliteCommand.ExecuteNonQuery();
+    }
+    
+    public static void RemovePlayers(ulong guildId)
+    {
+        var sqliteCommand = ServerDataConnection.CreateCommand();
+
+        sqliteCommand.CommandText = 
+            $"""
+             DELETE FROM players WHERE
+                server_id is '{guildId}'
              """;
         
         sqliteCommand.ExecuteNonQuery();

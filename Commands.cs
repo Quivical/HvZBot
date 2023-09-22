@@ -96,14 +96,14 @@ namespace DiscordBot
                     {
                         //make a new role
                         zombieRole = ctx.Guild.CreateRoleAsync("Zombie", color: DiscordColor.Red, reason: "Creating role for zombie players").Result;
-                        Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.HumanRole, zombieRole.Id);
+                        Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.ZombieRole, zombieRole.Id);
                         await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                             new DiscordInteractionResponseBuilder().WithContent(
                                 $"Zombie role has been created! This will be given to players upon being tagged."));
                         return;
                     }
 
-                    Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.HumanRole, zombieRole!.Id);
+                    Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.ZombieRole, zombieRole!.Id);
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                         new DiscordInteractionResponseBuilder().WithContent(
                             $"The specified role has been set as the zombie role! This will be given to players upon being tagged."));
@@ -121,10 +121,10 @@ namespace DiscordBot
             
         }
 
-        [SlashCommandGroup("unset", "Undo actions from /setup and reset various aspects to the bot's default")]
+        [SlashCommandGroup("end", "Undo actions from /setup and reset various aspects to the bot's default")]
         public class ClearCommands : ApplicationCommandModule
         {
-            [SlashCommand("channels", "Resets your chosen channels, preventing tags and registration."), SlashRequirePermissions(Permissions.ManageChannels)]
+            [SlashCommand("allchannels", "Resets your chosen channels, preventing tags and registration."), SlashRequirePermissions(Permissions.ManageChannels)]
             public async Task ClearChannels(InteractionContext ctx)
             {
                 Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.TagAnnouncementChannel, 0);
@@ -135,7 +135,7 @@ namespace DiscordBot
                         $"Channel settings have been cleared.\nPlease note that this prevents both registration and the continuation of the game."));
             }
             
-            [SlashCommand("registrationlogs", "Resets your choice of channel for registration logs. This prevents registration."), SlashRequirePermissions(Permissions.ManageChannels)]
+            [SlashCommand("registration", "Resets your choice of channel for registration logs. This prevents registration."), SlashRequirePermissions(Permissions.ManageChannels)]
             public async Task ClearRegistrationLogs(InteractionContext ctx)
             {
                 Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.RegistrationChannel, 0);
@@ -173,12 +173,35 @@ namespace DiscordBot
             }
             
             [SlashCommand("oz", "Turns the OZ into a normal zombie."), SlashRequirePermissions(Permissions.ManageChannels)]
-            public async Task ClearOZ(InteractionContext ctx, [Option("oz","The current OZ")] DiscordUser oz)
+            public async Task ClearOZ(InteractionContext ctx, [Option("oz","The OZ to revert")] DiscordUser oz)
             {
+                Guild guild = Save.GetGuild(ctx.Guild.Id).Result;
+                
                 Save.SetOz(ctx.Guild.Id, oz.Id, false);
+                Save.UpdatePlayerStatus(ctx.Guild.Id, oz.Id, Player.Statuses.Zombie);
+                
+                DiscordRole zombieRole = ctx.Guild.GetRole(guild.ZombieRole);
+                await ctx.Guild.GetMemberAsync(oz.Id).Result.GrantRoleAsync(zombieRole);
+                DiscordRole humanRole = ctx.Guild.GetRole(guild.HumanRole);
+                await ctx.Guild.GetMemberAsync(oz.Id).Result.RevokeRoleAsync(humanRole);
+                
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                     new DiscordInteractionResponseBuilder().WithContent(
                         $"The OZ has been turned into a normal zombie."));
+            }
+
+            [SlashCommand("game", "Ends the game, including clearing channel settings and player data."), SlashRequirePermissions(Permissions.ManageChannels)]
+            public async Task EndGame(InteractionContext ctx)
+            {
+                Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.HumanRole, 0);
+                Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.ZombieRole, 0);
+                Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.TagAnnouncementChannel, 0);
+                Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.TagReportingChannel, 0);
+                Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.RegistrationChannel, 0);
+                Save.RemovePlayers(ctx.Guild.Id);
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                    new DiscordInteractionResponseBuilder().WithContent(
+                        $"The game has been ended, all moderator commands have been undone, and all players have been removed.\n\nWe hope you had a great game!"));
             }
         }
 
@@ -392,10 +415,24 @@ namespace DiscordBot
                            */setup role zombie <Existing/New> [ZombieRole]* - This command is for telling the bot which role to give to players upon being tagged. You can either tell the bot to use an existing role, or tell it to create a new one for you.
                            
                            */setup role oz* - Choose which player should be the OZ. This only works AFTER the chosen player has registered. This will hide their name in tag announcements.
-                           
-                           ~
                            """;
             string help3 = """
+                           *next page...*
+                           */end* - This group of commands undoes various moderator commands and gameplay sequences.
+                           
+                           */end game* - This command has the effect of all other */end* commands, as well as removing your players from the database. This resets your game to square one.
+                           
+                           */end oz* - Turns the OZ into a normal zombie for tag announcements, and fixes their role assignments.
+                           
+                           */end registration* - Disables the registration logs channel, preventing further registrations. This does not prevent tags.
+                           
+                           */end tagreporting* - Disables the tag reporting channel, preventing tags.
+                           
+                           */end tagannounce* - Disables the tag announcement channel, preventing tags.
+                           
+                           */end roles* - Unsets the Humans and Zombie discord roles.
+                           """;
+            string help4 = """
                            **Player Commands**
                            */register* - Gives the player the human role and enters them into the bot's database. Players must register before logging any tags or becoming the OZ.
                            
@@ -411,6 +448,7 @@ namespace DiscordBot
                 new DiscordInteractionResponseBuilder().WithContent(help1));
             await ctx.Channel.SendMessageAsync(help2);
             await ctx.Channel.SendMessageAsync(help3);
+            await ctx.Channel.SendMessageAsync(help4);
         }
     }
 

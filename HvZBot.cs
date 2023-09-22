@@ -45,8 +45,10 @@ namespace DiscordBot
             this.Client.GuildCreated += OnGuildCreated;
             
             var slash = Client.UseSlashCommands();
-    
-            slash.RegisterCommands<SlashCommands>(830887192028250185);
+
+            //slash.RegisterCommands<SlashCommands>(830887192028250185);
+            //slash.RegisterCommands<SlashCommands>(1070921235283849306);
+            slash.RegisterCommands<SlashCommands>();
 
             DiscordActivity status = new("HvZ at Goucher College!", ActivityType.Playing);
 
