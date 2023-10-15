@@ -7,6 +7,8 @@ namespace DiscordBot
         public string HvZId;
         public bool IsOz;
         public Statuses Status;
+        public int HumanScore;
+        public int ZombieScore;
 
         public enum Statuses
         {
@@ -16,13 +18,15 @@ namespace DiscordBot
             Mod
         }
 
-        public Player(ulong serverId, ulong discordUserId, string hvzId, bool isOz, Statuses status)
+        public Player(ulong serverId, ulong discordUserId, string hvzId, bool isOz, Statuses status, int humanScore = 0, int zombieScore = 0)
         {
             ServerId = serverId;
             DiscordUserId = discordUserId;
             HvZId = hvzId;
             IsOz = isOz;
             Status = status;
+            HumanScore = humanScore;
+            ZombieScore = zombieScore;
         }
         
         public override string ToString()

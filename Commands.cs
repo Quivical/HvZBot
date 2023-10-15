@@ -361,6 +361,8 @@ namespace DiscordBot
             await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                 new DiscordInteractionResponseBuilder().WithContent(
                     $"Nice tag!"));
+            
+            Score.AwardTagPoints(tagger);
         }
         
         [SlashCommand("guide", "Explains how to set up this bot for a game")]
@@ -450,7 +452,56 @@ namespace DiscordBot
             await ctx.Channel.SendMessageAsync(help3);
             await ctx.Channel.SendMessageAsync(help4);
         }
-    }
 
+        [SlashCommandGroup("mission","Commands for starting, ending, and attending missions.")]
+        public class MissionCommands : ApplicationCommandModule
+        {
+            [SlashCommand("start", "Sets all channels to the same channel. Useful for quick bot tests."), SlashRequireUserPermissions(Permissions.ManageChannels)]
+            public async Task StartMission(InteractionContext ctx, [Option("name", "The name of the mission you'd like to start.")] string missionName)
+            {
+                //clean entry
+                if (missionName.Contains('\'', '\"', '`'))
+                {
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                        new DiscordInteractionResponseBuilder().WithContent(
+                            $"That is not a valid mission name. Please remove any quotes, apostrophes, or backticks."));
+                    return;
+                }
+                
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                    new DiscordInteractionResponseBuilder().WithContent(
+                        $"Mission: {missionName} has been started!\n\nPlayers can use '*/mission attend*' to log their attendance."));
+            }
+
+            [SlashCommand("close", "Close attendance for the current mission."), SlashRequireUserPermissions(Permissions.ManageChannels)]
+            public async Task CloseMission(InteractionContext ctx)
+            {
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                    new DiscordInteractionResponseBuilder().WithContent(
+                        $"Attendance for the current mission has been closed. You still must use '/mission end' to award points correctly."));
+            }
+
+            [SlashCommand("end", "Set a specific channel where zombies should report tags"), SlashRequireUserPermissions(Permissions.ManageChannels)]
+            public async Task EndMission(InteractionContext ctx)
+            {
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                    new DiscordInteractionResponseBuilder().WithContent(
+                        $"The current mission has ended! Points are currently being logged for humans and zombies."));
+                
+            }
+            
+            [SlashCommand("attend", "Sets all channels to the same channel. Useful for quick bot tests.")]
+            public async Task AttendMission(InteractionContext ctx, [Option("name", "Only required if mods enable this feature.")] string missionName = "")
+            {
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                    new DiscordInteractionResponseBuilder().WithContent(
+                        $"Your attendance for this mission has been logged."));
+            }
+        }
+    }
     
+    public class EmptyCommands : ApplicationCommandModule
+    {
+        
+    }
 }

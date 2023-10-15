@@ -16,10 +16,18 @@ public static class Save
         public const string ZombieRole = "zombie_role";
     }
     
+    public static class PlayerField
+    {
+        public const string HumanScore = "human_score";
+        public const string ZombieScore = "zombie_score";
+    }
+    
     static Save()
     {
         ServerDataConnection.Open();
     }
+
+    #region Guild Commands
     
     public static void CreateNewGuild(ulong id)
     {
@@ -74,6 +82,10 @@ public static class Save
         }
     }
 
+    #endregion
+
+    #region Player Commands
+    
     public static bool UpdatePlayerStatus(Player player, Player.Statuses newStatus)
     {
         var sqliteCommand = ServerDataConnection.CreateCommand();
@@ -157,7 +169,9 @@ public static class Save
                                  {player.DiscordUserId},
                                  '{player.HvZId}',
                                  {ozInt},
-                                 {(int) player.Status})
+                                 {(int) player.Status},
+                                 {player.HumanScore},
+                                 {player.ZombieScore})
              """;
         
         sqliteCommand.ExecuteNonQuery();
@@ -174,6 +188,24 @@ public static class Save
              """;
         
         sqliteCommand.ExecuteNonQuery();
+    }
+
+    public static void UpdateScore(ulong guildId, ulong userId, string playerField, int pointIncrease)
+    {
+        var sqliteCommand = ServerDataConnection.CreateCommand();
+        try
+        {
+            sqliteCommand.CommandText =
+                @$"UPDATE players
+                SET {playerField} = {playerField} + {pointIncrease}
+                WHERE discord_user_id is '{userId}'
+                AND server_id is '{guildId}'";
+            sqliteCommand.ExecuteNonQuery();
+        }
+        catch
+        {
+            Console.WriteLine("Data entry failed on UpdateScore");
+        }
     }
     
     public static async Task<Player?> GetPlayerData(ulong serverId, ulong discordId)
@@ -234,7 +266,30 @@ public static class Save
 
         return HvZIdSet;
     }
+    
+    public static async Task<List<(ulong, int, int)>> GetScores(ulong serverId)
+    {
+        var sqliteCommand = ServerDataConnection.CreateCommand();
+        
+        sqliteCommand.CommandText =
+            @$"SELECT discord_user_id, human_score, zombie_score FROM players 
+         WHERE server_id = '{serverId}'";
 
+        List<(ulong, int, int)> ScoresList = new List<(ulong, int, int)>();
+        
+        await using var reader = await sqliteCommand.ExecuteReaderAsync();
+        while (reader.Read())
+        {
+            var HvZId = reader.GetString(0);
+
+            ScoresList.Add(((ulong) reader.GetInt64(0), reader.GetInt32(1), reader.GetInt32(2)));
+        }
+
+        return ScoresList;
+    }
+    
+    #endregion
+    
     private static async Task<string> ReadQuery(SqliteCommand command)
     {
         var query = "";
