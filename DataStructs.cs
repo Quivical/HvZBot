@@ -43,9 +43,10 @@ namespace DiscordBot
         public ulong TagReportingChannel { get; init; }
         public ulong HumanRole { get; init; }
         public ulong ZombieRole { get; init; }
+        public string CurrentMission { get; init; }
+        public bool MissionsPasswordLocked { get; init; }
 
-
-        public Guild(ulong id, ulong registrationChannel, ulong tagAnnouncementChannel, ulong tagReportingChannel, ulong hRole, ulong zRole)
+        public Guild(ulong id, ulong registrationChannel, ulong tagAnnouncementChannel, ulong tagReportingChannel, ulong hRole, ulong zRole, string currentMission, bool missionsPasswordLocked)
         {
             Id = id;
             RegistrationChannel = registrationChannel;
@@ -53,6 +54,8 @@ namespace DiscordBot
             TagReportingChannel = tagReportingChannel;
             HumanRole = hRole;
             ZombieRole = zRole;
+            CurrentMission = currentMission;
+            MissionsPasswordLocked = missionsPasswordLocked;
         }
     }
 }

@@ -14,6 +14,8 @@ public static class Save
         public const string TagReportingChannel = "tag_reporting_channel";
         public const string HumanRole = "human_role";
         public const string ZombieRole = "zombie_role";
+        public const string CurrentMission = "current_mission";
+        public const string MissionsPasswordLocked = "missions_password_locked";
     }
     
     public static class PlayerField
@@ -37,15 +39,6 @@ public static class Save
             @$"INSERT INTO servers VALUES ('{id}', '0', '0', '0', '0', '0');";
         sqliteCommand.ExecuteNonQuery();
     }
-
-    public static async Task<ulong> GetGuildField(ulong serverId, string fieldToGet)
-    {
-        var sqliteCommand = ServerDataConnection.CreateCommand();
-        sqliteCommand.CommandText =
-            @$"SELECT {fieldToGet} FROM servers
-                where id is '{serverId}'";
-        return Convert.ToUInt64(await ReadQuery(sqliteCommand));
-    }
     
     public static async Task<Guild> GetGuild(ulong serverId)
     {
@@ -58,13 +51,13 @@ public static class Save
         while (reader.Read())
         {
             var name = reader.GetString(0);
-            return new Guild((ulong) reader.GetInt64(0),(ulong) reader.GetInt64(1), (ulong) reader.GetInt64(2), (ulong) reader.GetInt64(3), (ulong) reader.GetInt64(4), (ulong) reader.GetInt64(5));
+            return new Guild((ulong) reader.GetInt64(0),(ulong) reader.GetInt64(1), (ulong) reader.GetInt64(2), (ulong) reader.GetInt64(3), (ulong) reader.GetInt64(4), (ulong) reader.GetInt64(5), reader.GetString(6), reader.GetBoolean(7));
         }
 
-        return new Guild(0, 0, 0, 0, 0, 0);
+        return new Guild(0, 0, 0, 0, 0, 0, "", false);
     }
     
-    public static bool UpdateGuildField(ulong serverId, string fieldToUpdate, ulong newValue)
+    public static bool UpdateGuildUlongField(ulong serverId, string fieldToUpdate, ulong newValue)
     {
         var sqliteCommand = ServerDataConnection.CreateCommand();
         try
@@ -72,6 +65,44 @@ public static class Save
             sqliteCommand.CommandText =
                 @$"UPDATE servers
                 SET {fieldToUpdate} = '{newValue}'
+                WHERE id is '{serverId}'";
+            sqliteCommand.ExecuteNonQuery();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+    
+    public static bool UpdateGuildStringField(ulong serverId, string fieldToUpdate, string newValue)
+    {
+        var sqliteCommand = ServerDataConnection.CreateCommand();
+        try
+        {
+            sqliteCommand.CommandText =
+                @$"UPDATE servers
+                SET {fieldToUpdate} = '{newValue}'
+                WHERE id is '{serverId}'";
+            sqliteCommand.ExecuteNonQuery();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+    
+    public static bool UpdateGuildBoolField(ulong serverId, string fieldToUpdate, bool newValue)
+    {
+        int intBool = newValue ? 1 : 0;
+        
+        var sqliteCommand = ServerDataConnection.CreateCommand();
+        try
+        {
+            sqliteCommand.CommandText =
+                @$"UPDATE servers
+                SET {fieldToUpdate} = {intBool}
                 WHERE id is '{serverId}'";
             sqliteCommand.ExecuteNonQuery();
             return true;
@@ -165,8 +196,8 @@ public static class Save
             $"""
              INSERT INTO players
                              VALUES (
-                                 {player.ServerId},
-                                 {player.DiscordUserId},
+                                 '{player.ServerId}',
+                                 '{player.DiscordUserId}',
                                  '{player.HvZId}',
                                  {ozInt},
                                  {(int) player.Status},
@@ -288,6 +319,48 @@ public static class Save
         return ScoresList;
     }
     
+    #endregion
+
+    #region Attendance Commands
+
+    public static void LogAttendance(ulong guildId, ulong userId, string missionName)
+    {
+        var sqliteCommand = ServerDataConnection.CreateCommand();
+
+        sqliteCommand.CommandText = 
+            $"""
+             INSERT INTO mission_attendance
+                             VALUES (
+                                 '{guildId}',
+                                 '{userId}',
+                                 '{missionName}',
+                                 -1)
+             """;
+        
+        sqliteCommand.ExecuteNonQuery();
+    }
+    
+    public static async Task<bool> CheckAttendance(ulong guildId, ulong userId, string missionName)
+    {
+        var sqliteCommand = ServerDataConnection.CreateCommand();
+        
+        sqliteCommand.CommandText =
+            @$"SELECT count(guild_id) FROM mission_attendance 
+         WHERE guild_id = '{guildId}'
+         AND discord_user_id = '{userId}'
+         AND mission_name = '{missionName}'";
+
+        int count = 0;
+        
+        await using var reader = await sqliteCommand.ExecuteReaderAsync();
+        while (reader.Read())
+        {
+            count += reader.GetInt32(0);
+        }
+
+        return count != 0;
+    }
+
     #endregion
     
     private static async Task<string> ReadQuery(SqliteCommand command)

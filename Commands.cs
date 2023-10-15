@@ -17,9 +17,9 @@ namespace DiscordBot
                 [SlashCommand("all", "Sets all channels to the same channel. Useful for quick bot tests."), SlashRequireUserPermissions(Permissions.ManageChannels)]
                 public async Task QuickSetup(InteractionContext ctx, [Option("channel", "Channel to use for all other commands")] DiscordChannel channel)
                 {
-                    Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.TagAnnouncementChannel, channel.Id);
-                    Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.TagReportingChannel, channel.Id);
-                    Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.RegistrationChannel, channel.Id);
+                    Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.TagAnnouncementChannel, channel.Id);
+                    Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.TagReportingChannel, channel.Id);
+                    Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.RegistrationChannel, channel.Id);
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                         new DiscordInteractionResponseBuilder().WithContent(
                             $"Channel for all commands set to {channel}"));
@@ -28,7 +28,7 @@ namespace DiscordBot
                 [SlashCommand("tagannouncement", "Set a tag announcement channel"), SlashRequireUserPermissions(Permissions.ManageChannels)]
                 public async Task SetChannelAnnouncement(InteractionContext ctx, [Option("channel", "The channel you would like to announce tags in")] DiscordChannel channel)
                 {
-                    Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.TagAnnouncementChannel, channel.Id);
+                    Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.TagAnnouncementChannel, channel.Id);
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                         new DiscordInteractionResponseBuilder().WithContent(
                             $"Channel for tag announcements is set to {channel.ToString()}"));
@@ -37,7 +37,7 @@ namespace DiscordBot
                 [SlashCommand("tagreporting", "Set a specific channel where zombies should report tags"), SlashRequireUserPermissions(Permissions.ManageChannels)]
                 public async Task SetTagChannel(InteractionContext ctx, [Option("channel", "The channel you would like people to report their tags in")] DiscordChannel channel)
                 {
-                    Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.TagReportingChannel, channel.Id);
+                    Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.TagReportingChannel, channel.Id);
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                         new DiscordInteractionResponseBuilder().WithContent(
                             $"Channel for tag reporting is set to {channel.ToString()}"));
@@ -46,7 +46,7 @@ namespace DiscordBot
                 [SlashCommand("registrationlogs", "Set a channel to log player registration to."), SlashRequireUserPermissions(Permissions.ManageChannels)] 
                 public async Task SetChannelRegistration(InteractionContext ctx, [Option("channel", "The channel you would like registration logs sent to")] DiscordChannel channel)
                 {
-                    Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.RegistrationChannel, channel.Id);
+                    Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.RegistrationChannel, channel.Id);
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                         new DiscordInteractionResponseBuilder().WithContent($"Channel registration set to {channel}"));
                 }
@@ -69,14 +69,14 @@ namespace DiscordBot
                     {
                         //make a new role
                         humanRole = ctx.Guild.CreateRoleAsync("Human", color: DiscordColor.Purple, reason: "Creating role for human players").Result;
-                        Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.HumanRole, humanRole.Id);
+                        Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.HumanRole, humanRole.Id);
                         await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                             new DiscordInteractionResponseBuilder().WithContent(
                                 $"Human role has been created! This will be given to players upon registration."));
                         return;
                     }
 
-                    Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.HumanRole, humanRole!.Id);
+                    Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.HumanRole, humanRole!.Id);
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                         new DiscordInteractionResponseBuilder().WithContent(
                             $"The specified role has been set as the human role! This will be given to players upon registration."));
@@ -96,14 +96,14 @@ namespace DiscordBot
                     {
                         //make a new role
                         zombieRole = ctx.Guild.CreateRoleAsync("Zombie", color: DiscordColor.Red, reason: "Creating role for zombie players").Result;
-                        Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.ZombieRole, zombieRole.Id);
+                        Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.ZombieRole, zombieRole.Id);
                         await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                             new DiscordInteractionResponseBuilder().WithContent(
                                 $"Zombie role has been created! This will be given to players upon being tagged."));
                         return;
                     }
 
-                    Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.ZombieRole, zombieRole!.Id);
+                    Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.ZombieRole, zombieRole!.Id);
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                         new DiscordInteractionResponseBuilder().WithContent(
                             $"The specified role has been set as the zombie role! This will be given to players upon being tagged."));
@@ -127,9 +127,9 @@ namespace DiscordBot
             [SlashCommand("allchannels", "Resets your chosen channels, preventing tags and registration."), SlashRequirePermissions(Permissions.ManageChannels)]
             public async Task ClearChannels(InteractionContext ctx)
             {
-                Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.TagAnnouncementChannel, 0);
-                Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.TagReportingChannel, 0);
-                Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.RegistrationChannel, 0);
+                Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.TagAnnouncementChannel, 0);
+                Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.TagReportingChannel, 0);
+                Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.RegistrationChannel, 0);
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                     new DiscordInteractionResponseBuilder().WithContent(
                         $"Channel settings have been cleared.\nPlease note that this prevents both registration and the continuation of the game."));
@@ -138,7 +138,7 @@ namespace DiscordBot
             [SlashCommand("registration", "Resets your choice of channel for registration logs. This prevents registration."), SlashRequirePermissions(Permissions.ManageChannels)]
             public async Task ClearRegistrationLogs(InteractionContext ctx)
             {
-                Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.RegistrationChannel, 0);
+                Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.RegistrationChannel, 0);
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                     new DiscordInteractionResponseBuilder().WithContent(
                         $"{ctx.Channel.Mention} is no longer the registration channel.\nPlease note that this prevents registration."));
@@ -147,7 +147,7 @@ namespace DiscordBot
             [SlashCommand("tagreporting", "Resets your choice of tag reporting channel. This prevents tags."), SlashRequirePermissions(Permissions.ManageChannels)]
             public async Task ClearTagReporting(InteractionContext ctx)
             {
-                Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.TagReportingChannel, 0);
+                Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.TagReportingChannel, 0);
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                     new DiscordInteractionResponseBuilder().WithContent(
                         $"{ctx.Channel.Mention} is no longer the tag reporting channel.\nPlease note that this prevents the continuation of the game."));
@@ -156,7 +156,7 @@ namespace DiscordBot
             [SlashCommand("taggannounce", "Resets your choice of announcement channel. This prevents tags."), SlashRequirePermissions(Permissions.ManageChannels)]
             public async Task ClearTagAnnounce(InteractionContext ctx)
             {
-                Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.TagAnnouncementChannel, 0);
+                Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.TagAnnouncementChannel, 0);
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                     new DiscordInteractionResponseBuilder().WithContent(
                         $"{ctx.Channel.Mention} is no longer the tag announcement channel.\nPlease note that this prevents the continuation of the game."));
@@ -165,8 +165,8 @@ namespace DiscordBot
             [SlashCommand("roles", "Unsets the human and zombie roles you defined earlier."), SlashRequirePermissions(Permissions.ManageChannels)]
             public async Task ClearRoles(InteractionContext ctx)
             {
-                Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.HumanRole, 0);
-                Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.ZombieRole, 0);
+                Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.HumanRole, 0);
+                Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.ZombieRole, 0);
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                     new DiscordInteractionResponseBuilder().WithContent(
                         $"The human and zombie roles have been unset.\nPlease note that this prevents the continuation of the game."));
@@ -193,11 +193,11 @@ namespace DiscordBot
             [SlashCommand("game", "Ends the game, including clearing channel settings and player data."), SlashRequirePermissions(Permissions.ManageChannels)]
             public async Task EndGame(InteractionContext ctx)
             {
-                Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.HumanRole, 0);
-                Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.ZombieRole, 0);
-                Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.TagAnnouncementChannel, 0);
-                Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.TagReportingChannel, 0);
-                Save.UpdateGuildField(ctx.Guild.Id, Save.GuildField.RegistrationChannel, 0);
+                Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.HumanRole, 0);
+                Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.ZombieRole, 0);
+                Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.TagAnnouncementChannel, 0);
+                Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.TagReportingChannel, 0);
+                Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.RegistrationChannel, 0);
                 Save.RemovePlayers(ctx.Guild.Id);
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                     new DiscordInteractionResponseBuilder().WithContent(
@@ -468,6 +468,17 @@ namespace DiscordBot
                     return;
                 }
                 
+                //check if there's currently a mission
+                Guild guild = Save.GetGuild(ctx.Guild.Id).Result;
+                if (guild.CurrentMission != "")
+                {
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                        new DiscordInteractionResponseBuilder().WithContent(
+                            $"You must end your current mission before beginning a new one. For proper point tracking you should use '/mission end' as soon as the mission finishes."));
+                    return;
+                }
+
+                Save.UpdateGuildStringField(ctx.Guild.Id, Save.GuildField.CurrentMission, missionName);
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                     new DiscordInteractionResponseBuilder().WithContent(
                         $"Mission: {missionName} has been started!\n\nPlayers can use '*/mission attend*' to log their attendance."));
@@ -493,9 +504,70 @@ namespace DiscordBot
             [SlashCommand("attend", "Sets all channels to the same channel. Useful for quick bot tests.")]
             public async Task AttendMission(InteractionContext ctx, [Option("name", "Only required if mods enable this feature.")] string missionName = "")
             {
+                Guild guild = Save.GetGuild(ctx.Guild.Id).Result;
+
+                //check if there's a mission
+                if (guild.CurrentMission == "")
+                {
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                        new DiscordInteractionResponseBuilder().WithContent(
+                            $"There are currently no missions open for registration."));
+                    return;
+                }
+                
+                //check if they need to give a password
+                if (guild.MissionsPasswordLocked)
+                {
+                    if (missionName == "")
+                    {
+                        await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                            new DiscordInteractionResponseBuilder().WithContent(
+                                $"Mods have required that you enter the mission name in order to attend, but you didn't enter anything! Please ask a mod for the mission name."));
+                        return;
+                    }
+                    if (missionName != guild.CurrentMission)
+                    {
+                        await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                            new DiscordInteractionResponseBuilder().WithContent(
+                                $"You have entered an incorrect mission name! Please ask a mod for the mission name."));
+                        return;
+                    }
+                }
+                
+                //check to see if they've already attended this mission
+                bool attended = Save.CheckAttendance(ctx.Guild.Id, ctx.User.Id, guild.CurrentMission).Result;
+
+                if (attended)
+                {
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                        new DiscordInteractionResponseBuilder().WithContent(
+                            $"You've already logged your attendance for this meeting!"));
+                }
+                
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                     new DiscordInteractionResponseBuilder().WithContent(
                         $"Your attendance for this mission has been logged."));
+                
+            }
+            
+            [SlashCommand("passwordlock", "Requires players to enter the mission's name in order to attend the mission."), SlashRequireUserPermissions(Permissions.ManageChannels)]
+            public async Task LockMissions(InteractionContext ctx, [Option("status", "True enables, false disables.")] bool locked = true)
+            {
+                Save.UpdateGuildBoolField(ctx.Guild.Id, Save.GuildField.MissionsPasswordLocked, locked);
+                
+                if (locked)
+                {
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                        new DiscordInteractionResponseBuilder().WithContent(
+                            $"Players must now specify the mission's name in order to attend the mission."));
+                }
+                else
+                {
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                        new DiscordInteractionResponseBuilder().WithContent(
+                            $"Players do **not** need to the mission's name in order to attend the mission."));
+                }
+                
             }
         }
     }
