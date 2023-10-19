@@ -451,6 +451,11 @@ namespace DiscordBot
             await ctx.Channel.SendMessageAsync(help4);
         }
     }
+    
+    public class ClearCommands : ApplicationCommandModule
+    {
+        
+    }
 
     
 }
