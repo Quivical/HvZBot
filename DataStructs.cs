@@ -44,9 +44,9 @@ namespace DiscordBot
         public ulong HumanRole { get; init; }
         public ulong ZombieRole { get; init; }
         public string CurrentMission { get; init; }
-        public bool MissionsPasswordLocked { get; init; }
+        public MissionStatus MissionStatus { get; init; }
 
-        public Guild(ulong id, ulong registrationChannel, ulong tagAnnouncementChannel, ulong tagReportingChannel, ulong hRole, ulong zRole, string currentMission, bool missionsPasswordLocked)
+        public Guild(ulong id, ulong registrationChannel, ulong tagAnnouncementChannel, ulong tagReportingChannel, ulong hRole, ulong zRole, string currentMission, MissionStatus missionStatus)
         {
             Id = id;
             RegistrationChannel = registrationChannel;
@@ -55,7 +55,43 @@ namespace DiscordBot
             HumanRole = hRole;
             ZombieRole = zRole;
             CurrentMission = currentMission;
-            MissionsPasswordLocked = missionsPasswordLocked;
+            MissionStatus = missionStatus;
+        }
+    }
+    
+    public struct MissionStatus
+    {
+        public bool locked { get; init; }
+        public bool closed { get; init; }
+        public int statusInt { get; init; }
+
+        public MissionStatus(bool closed, bool locked)
+        {
+            this.closed = closed;
+            this.locked = locked;
+            int tempInt;
+            if (closed)
+            {
+                tempInt = 2;
+            }
+            else
+            {
+                tempInt = 1;
+            }
+
+            if (locked)
+            {
+                tempInt = tempInt * -1;
+            }
+
+            statusInt = tempInt;
+        }
+        
+        public MissionStatus(int _statusInt)
+        {
+            this.statusInt = _statusInt;
+            locked = _statusInt <= 0;
+            closed = _statusInt == 2 || _statusInt == -2;
         }
     }
 }

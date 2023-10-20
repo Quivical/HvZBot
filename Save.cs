@@ -15,7 +15,7 @@ public static class Save
         public const string HumanRole = "human_role";
         public const string ZombieRole = "zombie_role";
         public const string CurrentMission = "current_mission";
-        public const string MissionsPasswordLocked = "missions_password_locked";
+        public const string MissionStatus = "missions_status";
     }
     
     public static class PlayerField
@@ -51,10 +51,10 @@ public static class Save
         while (reader.Read())
         {
             var name = reader.GetString(0);
-            return new Guild((ulong) reader.GetInt64(0),(ulong) reader.GetInt64(1), (ulong) reader.GetInt64(2), (ulong) reader.GetInt64(3), (ulong) reader.GetInt64(4), (ulong) reader.GetInt64(5), reader.GetString(6), reader.GetBoolean(7));
+            return new Guild((ulong) reader.GetInt64(0),(ulong) reader.GetInt64(1), (ulong) reader.GetInt64(2), (ulong) reader.GetInt64(3), (ulong) reader.GetInt64(4), (ulong) reader.GetInt64(5), reader.GetString(6), new MissionStatus(reader.GetInt32(7)));
         }
 
-        return new Guild(0, 0, 0, 0, 0, 0, "", false);
+        return new Guild(0, 0, 0, 0, 0, 0, "", new MissionStatus(1));
     }
     
     public static bool UpdateGuildUlongField(ulong serverId, string fieldToUpdate, ulong newValue)
@@ -65,6 +65,24 @@ public static class Save
             sqliteCommand.CommandText =
                 @$"UPDATE servers
                 SET {fieldToUpdate} = '{newValue}'
+                WHERE id is '{serverId}'";
+            sqliteCommand.ExecuteNonQuery();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+    
+    public static bool UpdateGuildMissionStatus(ulong serverId, MissionStatus newValue)
+    {
+        var sqliteCommand = ServerDataConnection.CreateCommand();
+        try
+        {
+            sqliteCommand.CommandText =
+                @$"UPDATE servers
+                SET missions_status = {newValue.statusInt}
                 WHERE id is '{serverId}'";
             sqliteCommand.ExecuteNonQuery();
             return true;

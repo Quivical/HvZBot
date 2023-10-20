@@ -46,12 +46,11 @@ namespace DiscordBot
             
             var slash = Client.UseSlashCommands();
 
-            slash.RegisterCommands<SlashCommands>(830887192028250185);
-            //slash.RegisterCommands<SlashCommands>(1070921235283849306);
-            //slash.RegisterCommands<EmptyCommands>();
+            slash.RegisterCommands<AdminCommands>(1148742162259923065);
+            slash.RegisterCommands<SlashCommands>(1070921235283849306);
 
             DiscordActivity status = new("HvZ at Goucher College!", ActivityType.Playing);
-
+            
             await Client.ConnectAsync(status);
             await Task.Delay(-1);
         }

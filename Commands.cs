@@ -1,5 +1,7 @@
+using System.Collections;
 using System.Diagnostics;
 using DSharpPlus;
+using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
@@ -460,7 +462,7 @@ namespace DiscordBot
             public async Task StartMission(InteractionContext ctx, [Option("name", "The name of the mission you'd like to start.")] string missionName)
             {
                 //clean entry
-                if (missionName.Contains('\'', '\"', '`'))
+                if (missionName.Contains('\'', '\"', '`', '\\'))
                 {
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                         new DiscordInteractionResponseBuilder().WithContent(
@@ -487,6 +489,10 @@ namespace DiscordBot
             [SlashCommand("close", "Close attendance for the current mission."), SlashRequireUserPermissions(Permissions.ManageChannels)]
             public async Task CloseMission(InteractionContext ctx)
             {
+                Guild guild = Save.GetGuild(ctx.Guild.Id).Result;
+
+                Save.UpdateGuildMissionStatus(ctx.Guild.Id, new MissionStatus(true, guild.MissionStatus.locked));
+                
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                     new DiscordInteractionResponseBuilder().WithContent(
                         $"Attendance for the current mission has been closed. You still must use '/mission end' to award points correctly."));
@@ -495,6 +501,7 @@ namespace DiscordBot
             [SlashCommand("end", "Set a specific channel where zombies should report tags"), SlashRequireUserPermissions(Permissions.ManageChannels)]
             public async Task EndMission(InteractionContext ctx)
             {
+                //needs to clear mission name, calculate points, and un-close mission
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                     new DiscordInteractionResponseBuilder().WithContent(
                         $"The current mission has ended! Points are currently being logged for humans and zombies."));
@@ -511,12 +518,21 @@ namespace DiscordBot
                 {
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                         new DiscordInteractionResponseBuilder().WithContent(
-                            $"There are currently no missions open for registration."));
+                            $"There are currently no missions open for attendance."));
+                    return;
+                }
+                
+                //check if it's closed
+                if (guild.MissionStatus.closed)
+                {
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                        new DiscordInteractionResponseBuilder().WithContent(
+                            $"Registration for this mission is currently closed."));
                     return;
                 }
                 
                 //check if they need to give a password
-                if (guild.MissionsPasswordLocked)
+                if (guild.MissionStatus.locked)
                 {
                     if (missionName == "")
                     {
@@ -542,18 +558,20 @@ namespace DiscordBot
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                         new DiscordInteractionResponseBuilder().WithContent(
                             $"You've already logged your attendance for this meeting!"));
+                    return;
                 }
                 
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                     new DiscordInteractionResponseBuilder().WithContent(
                         $"Your attendance for this mission has been logged."));
-                
+                Save.LogAttendance(ctx.Guild.Id, ctx.User.Id, guild.CurrentMission);
             }
             
             [SlashCommand("passwordlock", "Requires players to enter the mission's name in order to attend the mission."), SlashRequireUserPermissions(Permissions.ManageChannels)]
             public async Task LockMissions(InteractionContext ctx, [Option("status", "True enables, false disables.")] bool locked = true)
             {
-                Save.UpdateGuildBoolField(ctx.Guild.Id, Save.GuildField.MissionsPasswordLocked, locked);
+                Save.UpdateGuildBoolField(ctx.Guild.Id, Save.GuildField.MissionStatus, locked);
+                Save.GetGuild(ctx.Guild.Id);
                 
                 if (locked)
                 {
@@ -568,6 +586,22 @@ namespace DiscordBot
                             $"Players do **not** need to the mission's name in order to attend the mission."));
                 }
                 
+            }
+        }
+    }
+    
+    public class AdminCommands : ApplicationCommandModule
+    {
+        [SlashCommand("serverreport", "Gets the servers that the bot is in."), SlashRequireOwner, Hidden]
+        public async Task ServerReport(InteractionContext ctx)
+        {
+            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                new DiscordInteractionResponseBuilder().WithContent(
+                    $"Generating Report:"));
+            using IEnumerator<DiscordGuild> guildEnumerator = ctx.Client.Guilds.Values.GetEnumerator();
+            while (guildEnumerator.MoveNext())
+            {
+                await ctx.Channel.SendMessageAsync($"{guildEnumerator.Current.Name}");
             }
         }
     }
