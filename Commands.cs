@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Diagnostics;
 using DSharpPlus;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
@@ -27,7 +25,7 @@ namespace DiscordBot
                             $"Channel for all commands set to {channel}"));
                 }
 
-                [SlashCommand("tagannouncement", "Set a tag announcement channel"), SlashRequireUserPermissions(Permissions.ManageChannels)]
+                [SlashCommand("tag_announcement", "Set a tag announcement channel"), SlashRequireUserPermissions(Permissions.ManageChannels)]
                 public async Task SetChannelAnnouncement(InteractionContext ctx, [Option("channel", "The channel you would like to announce tags in")] DiscordChannel channel)
                 {
                     Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.TagAnnouncementChannel, channel.Id);
@@ -36,7 +34,7 @@ namespace DiscordBot
                             $"Channel for tag announcements is set to {channel.ToString()}"));
                 }
 
-                [SlashCommand("tagreporting", "Set a specific channel where zombies should report tags"), SlashRequireUserPermissions(Permissions.ManageChannels)]
+                [SlashCommand("tag_reporting", "Set a specific channel where zombies should report tags"), SlashRequireUserPermissions(Permissions.ManageChannels)]
                 public async Task SetTagChannel(InteractionContext ctx, [Option("channel", "The channel you would like people to report their tags in")] DiscordChannel channel)
                 {
                     Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.TagReportingChannel, channel.Id);
@@ -45,7 +43,7 @@ namespace DiscordBot
                             $"Channel for tag reporting is set to {channel.ToString()}"));
                 }
 
-                [SlashCommand("registrationlogs", "Set a channel to log player registration to."), SlashRequireUserPermissions(Permissions.ManageChannels)] 
+                [SlashCommand("registration_logs", "Set a channel to log player registration to."), SlashRequireUserPermissions(Permissions.ManageChannels)] 
                 public async Task SetChannelRegistration(InteractionContext ctx, [Option("channel", "The channel you would like registration logs sent to")] DiscordChannel channel)
                 {
                     Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.RegistrationChannel, channel.Id);
@@ -458,8 +456,8 @@ namespace DiscordBot
         [SlashCommandGroup("mission","Commands for starting, ending, and attending missions.")]
         public class MissionCommands : ApplicationCommandModule
         {
-            [SlashCommand("start", "Sets all channels to the same channel. Useful for quick bot tests."), SlashRequireUserPermissions(Permissions.ManageChannels)]
-            public async Task StartMission(InteractionContext ctx, [Option("name", "The name of the mission you'd like to start.")] string missionName)
+            [SlashCommand("start", "Begin a mission."), SlashRequireUserPermissions(Permissions.ManageChannels)]
+            public async Task StartMission(InteractionContext ctx, [Option("keyword", "The name/keyword of the mission you'd like to start.")] string missionName)
             {
                 //clean entry
                 if (missionName.Contains('\'', '\"', '`', '\\'))
@@ -481,9 +479,18 @@ namespace DiscordBot
                 }
 
                 Save.UpdateGuildStringField(ctx.Guild.Id, Save.GuildField.CurrentMission, missionName);
-                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
-                    new DiscordInteractionResponseBuilder().WithContent(
-                        $"Mission: {missionName} has been started!\n\nPlayers can use '*/mission attend*' to log their attendance."));
+                if (guild.MissionStatus.locked)
+                {
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                        new DiscordInteractionResponseBuilder().WithContent(
+                            $"Mission: {missionName} has been started!\n\nPlayers can use '*/mission attend <keyword>*' to log their attendance."));
+                }
+                else
+                {
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                        new DiscordInteractionResponseBuilder().WithContent(
+                            $"Mission: {missionName} has been started!\n\nPlayers can use '*/mission attend*' to log their attendance."));
+                }
             }
 
             [SlashCommand("close", "Close attendance for the current mission."), SlashRequireUserPermissions(Permissions.ManageChannels)]
@@ -498,18 +505,25 @@ namespace DiscordBot
                         $"Attendance for the current mission has been closed. You still must use '/mission end' to award points correctly."));
             }
 
-            [SlashCommand("end", "Set a specific channel where zombies should report tags"), SlashRequireUserPermissions(Permissions.ManageChannels)]
+            [SlashCommand("end", "End the current mission."), SlashRequireUserPermissions(Permissions.ManageChannels)]
             public async Task EndMission(InteractionContext ctx)
             {
-                //needs to clear mission name, calculate points, and un-close mission
+                Guild guild = Save.GetGuild(ctx.Guild.Id).Result;
+                string missionName = guild.CurrentMission;
+
+                Save.UpdateGuildStringField(guild.Id, Save.GuildField.CurrentMission, "");
+                Save.UpdateGuildMissionStatus(ctx.Guild.Id, new MissionStatus(false, guild.MissionStatus.locked));
+                
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                     new DiscordInteractionResponseBuilder().WithContent(
                         $"The current mission has ended! Points are currently being logged for humans and zombies."));
                 
+                //todo calculate points
+                
             }
             
-            [SlashCommand("attend", "Sets all channels to the same channel. Useful for quick bot tests.")]
-            public async Task AttendMission(InteractionContext ctx, [Option("name", "Only required if mods enable this feature.")] string missionName = "")
+            [SlashCommand("attend", "Log your attendance for the ongoing mission.")]
+            public async Task AttendMission(InteractionContext ctx, [Option("keyword", "Only required if mods enable this feature.")] string missionName = "")
             {
                 Guild guild = Save.GetGuild(ctx.Guild.Id).Result;
 
@@ -538,14 +552,14 @@ namespace DiscordBot
                     {
                         await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                             new DiscordInteractionResponseBuilder().WithContent(
-                                $"Mods have required that you enter the mission name in order to attend, but you didn't enter anything! Please ask a mod for the mission name."));
+                                $"Mods have required that you enter a keyword in order to attend, but you didn't enter anything! Please ask a mod for the mission name."));
                         return;
                     }
                     if (missionName != guild.CurrentMission)
                     {
                         await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                             new DiscordInteractionResponseBuilder().WithContent(
-                                $"You have entered an incorrect mission name! Please ask a mod for the mission name."));
+                                $"You have entered an incorrect mission keyword! Please ask a mod for the mission name."));
                         return;
                     }
                 }
@@ -560,30 +574,40 @@ namespace DiscordBot
                             $"You've already logged your attendance for this meeting!"));
                     return;
                 }
+
+                Player? playerNullable = Save.GetPlayerData(guild.Id, ctx.User.Id).Result;
+                if (!playerNullable.HasValue)
+                {
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                        new DiscordInteractionResponseBuilder().WithContent(
+                            $"You need to register for HvZ before participating in a mission!"));
+                    return;
+                }
                 
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                     new DiscordInteractionResponseBuilder().WithContent(
                         $"Your attendance for this mission has been logged."));
-                Save.LogAttendance(ctx.Guild.Id, ctx.User.Id, guild.CurrentMission);
+                
+                Save.LogAttendance(ctx.Guild.Id, ctx.User.Id, guild.CurrentMission, playerNullable.Value.Status);
             }
             
-            [SlashCommand("passwordlock", "Requires players to enter the mission's name in order to attend the mission."), SlashRequireUserPermissions(Permissions.ManageChannels)]
+            [SlashCommand("require_keyword", "Requires players to enter a 'keyword' in order to attend the mission."), SlashRequireUserPermissions(Permissions.ManageChannels)]
             public async Task LockMissions(InteractionContext ctx, [Option("status", "True enables, false disables.")] bool locked = true)
             {
                 Save.UpdateGuildBoolField(ctx.Guild.Id, Save.GuildField.MissionStatus, locked);
-                Save.GetGuild(ctx.Guild.Id);
+                Guild guild = Save.GetGuild(ctx.Guild.Id).Result;
                 
                 if (locked)
                 {
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                         new DiscordInteractionResponseBuilder().WithContent(
-                            $"Players must now specify the mission's name in order to attend the mission."));
+                            $"Players must now specify the keyword in order to attend the mission."));
                 }
                 else
                 {
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                         new DiscordInteractionResponseBuilder().WithContent(
-                            $"Players do **not** need to the mission's name in order to attend the mission."));
+                            $"Players do **not** need to specify the keyword in order to attend the mission."));
                 }
                 
             }
@@ -592,7 +616,7 @@ namespace DiscordBot
     
     public class AdminCommands : ApplicationCommandModule
     {
-        [SlashCommand("serverreport", "Gets the servers that the bot is in."), SlashRequireOwner, Hidden]
+        [SlashCommand("server_report", "Gets the servers that the bot is in."), SlashRequireOwner, Hidden]
         public async Task ServerReport(InteractionContext ctx)
         {
             await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,

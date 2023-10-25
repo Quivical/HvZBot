@@ -341,7 +341,7 @@ public static class Save
 
     #region Attendance Commands
 
-    public static void LogAttendance(ulong guildId, ulong userId, string missionName)
+    public static void LogAttendance(ulong guildId, ulong userId, string missionName, Player.Statuses status)
     {
         var sqliteCommand = ServerDataConnection.CreateCommand();
 
@@ -352,7 +352,7 @@ public static class Save
                                  '{guildId}',
                                  '{userId}',
                                  '{missionName}',
-                                 -1)
+                                 {(int) status})
              """;
         
         sqliteCommand.ExecuteNonQuery();
@@ -379,6 +379,31 @@ public static class Save
         return count != 0;
     }
 
+    public static async Task<bool> GetAttendees(ulong guildId, string missionName)
+    {
+        var sqliteCommand = ServerDataConnection.CreateCommand();
+        
+        sqliteCommand.CommandText =
+            @$"UPDATE mission_attendance 
+        SET mission_attendance.end_status = players.status
+        FROM mission_attendance
+        JOIN players
+        ON mission_attendance.discord_user_id = players.discord_user_id
+        AND players.server_id = '{guildId}'
+        AND mission_name = '{missionName}'
+        RETURNING players.discord_user_id, players.status";
+
+        int count = 0;
+        
+        await using var reader = await sqliteCommand.ExecuteReaderAsync();
+        while (reader.Read())
+        {
+            count += reader.GetInt32(0);
+        }
+
+        return count != 0;
+    }
+    
     #endregion
     
     private static async Task<string> ReadQuery(SqliteCommand command)
