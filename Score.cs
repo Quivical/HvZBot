@@ -5,17 +5,6 @@ public static class Score
     private static int _humanMissionSurvivalAward = 2;
     private static int _zombieAttendanceAward = 1;
     private static int _zombieTagAward = 2;
-
-    public static void AwardSurvivalPoints(Player human)
-    {
-        Save.UpdateScore(human.DiscordUserId, human.DiscordUserId, Save.PlayerField.HumanScore, _humanMissionSurvivalAward);
-    }
-    
-    public static void AwardAttendancePoints(Player zombie)
-    {
-        Save.UpdateScore(zombie.DiscordUserId, zombie.DiscordUserId, Save.PlayerField.ZombieScore,
-            _humanMissionSurvivalAward);
-    }
     
     public static void AwardTagPoints(Player zombie)
     {
@@ -31,7 +20,9 @@ public static class Score
         {
             Console.WriteLine("Player not found on AwardBonusPoints!");
             return;
-        } else if (playerNullable.Value is { Status: Player.Statuses.Human, IsOz: false })
+        } 
+        
+        if (playerNullable.Value is { Status: Player.Statuses.Human, IsOz: false })
         {
             playerField = Save.PlayerField.HumanScore;
         }
@@ -39,11 +30,34 @@ public static class Score
         {
             playerField = Save.PlayerField.ZombieScore;
         }
+        
         Save.UpdateScore(player.DiscordUserId, player.DiscordUserId, playerField, bonus);
     }
 
     public static string GetLeaderboard(ulong guildId)
     {
         return "";
+    }
+
+    public static void AwardAttendancePoints(ulong guildId, string missionName)
+    {
+        Console.WriteLine("Awarding");
+        List<(ulong, Player.Statuses)> players = Save.GetAttendees(guildId, missionName).Result;
+        Console.WriteLine(players);
+        foreach ((ulong, Player.Statuses) playerTuple in players)
+        {
+            Console.WriteLine(playerTuple.Item2);
+            if (playerTuple.Item2 == Player.Statuses.Human)
+            {
+                Save.UpdateScore(guildId, playerTuple.Item1, Save.PlayerField.HumanScore, _humanMissionSurvivalAward);
+            } else if (playerTuple.Item2 == Player.Statuses.Zombie)
+            {
+                Save.UpdateScore(guildId, playerTuple.Item1, Save.PlayerField.ZombieScore, _zombieAttendanceAward);
+            }
+            else
+            {
+                Console.WriteLine("Error encountered. Unexpected type given to AwardAttendancePoints.");
+            }
+        }
     }
 }

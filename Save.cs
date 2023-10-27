@@ -36,7 +36,7 @@ public static class Save
         var sqliteCommand = ServerDataConnection.CreateCommand();
         
         sqliteCommand.CommandText = 
-            @$"INSERT INTO servers VALUES ('{id}', '0', '0', '0', '0', '0');";
+            @$"INSERT INTO servers VALUES ('{id}', '0', '0', '0', '0', '0', '', '1');";
         sqliteCommand.ExecuteNonQuery();
     }
     
@@ -241,6 +241,7 @@ public static class Save
 
     public static void UpdateScore(ulong guildId, ulong userId, string playerField, int pointIncrease)
     {
+        Console.WriteLine("Updating");
         var sqliteCommand = ServerDataConnection.CreateCommand();
         try
         {
@@ -379,29 +380,31 @@ public static class Save
         return count != 0;
     }
 
-    public static async Task<bool> GetAttendees(ulong guildId, string missionName)
+    public static async Task<List<(ulong, Player.Statuses)>> GetAttendees(ulong guildId, string missionName)
     {
         var sqliteCommand = ServerDataConnection.CreateCommand();
-        
+        Console.WriteLine(guildId + missionName);
         sqliteCommand.CommandText =
-            @$"UPDATE mission_attendance 
-        SET mission_attendance.end_status = players.status
-        FROM mission_attendance
-        JOIN players
-        ON mission_attendance.discord_user_id = players.discord_user_id
-        AND players.server_id = '{guildId}'
-        AND mission_name = '{missionName}'
-        RETURNING players.discord_user_id, players.status";
+            @$"UPDATE mission_attendance
+                SET end_status = p.status
+                FROM mission_attendance ma
+                    JOIN players p 
+                        ON ma.discord_user_id = p.discord_user_id
+                        AND ma.guild_id = p.server_id
+                WHERE mission_attendance.mission_name = '{missionName}'
+                RETURNING discord_user_id, end_status";
 
-        int count = 0;
+        List<(ulong, Player.Statuses)> players = new List<(ulong, Player.Statuses)>();
         
         await using var reader = await sqliteCommand.ExecuteReaderAsync();
         while (reader.Read())
         {
-            count += reader.GetInt32(0);
+            Console.WriteLine("Writing");
+            Console.WriteLine(((ulong) reader.GetInt64(0),(Player.Statuses) reader.GetInt32(1)));
+            players.Add(((ulong) reader.GetInt64(0),(Player.Statuses) reader.GetInt32(1)));
         }
 
-        return count != 0;
+        return players;
     }
     
     #endregion

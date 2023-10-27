@@ -518,8 +518,7 @@ namespace DiscordBot
                     new DiscordInteractionResponseBuilder().WithContent(
                         $"The current mission has ended! Points are currently being logged for humans and zombies."));
                 
-                //todo calculate points
-                
+                Score.AwardAttendancePoints(guild.Id, missionName);
             }
             
             [SlashCommand("attend", "Log your attendance for the ongoing mission.")]
