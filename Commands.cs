@@ -373,13 +373,14 @@ namespace DiscordBot
                         """
                         A quick outline of the steps to set up the bot are as follows:
                         
-                        1. Use '/set channel registrationlogs'. This should be set to a moderator-only channel.
-                        2. Use '/set role' to create a new human/zombie role, or to tell the bot what your existing h/z roles are.
+                        1. Use '/setup channel registrationlogs'. This should be set to a moderator-only channel.
+                        2. Use '/setup role' to create a new human/zombie role, or to tell the bot what your existing h/z roles are.
                         3. Once those have been done, registration should now be enabled.
                         4. Players use '/register' to get their HvZId and the role you designated for humans.
-                        5. Before players are able to use '/tag <HvZId of tagged>', you must set the tag announcements channel and tag reporting channel with '/set channel'.
+                        5. Before players are able to use '/tag <HvZId of tagged>', you must set the tag announcements channel and tag reporting channel with '/setup channel'.
                         6. '/tag' will take care of transferring tagged players out of the human channel and into the zombie channel.
-                        7. Have fun!
+                        7. Optionally use '/mission' commands to setup missions and track player attendance. 
+                        8. Have fun!
                         
                         Please note:
                         -only those with the 'Manage Channels' permission are able to use moderator commands.
