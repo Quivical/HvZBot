@@ -41,12 +41,9 @@ public static class Score
 
     public static void AwardAttendancePoints(ulong guildId, string missionName)
     {
-        Console.WriteLine("Awarding");
         List<(ulong, Player.Statuses)> players = Save.GetAttendees(guildId, missionName).Result;
-        Console.WriteLine(players);
         foreach ((ulong, Player.Statuses) playerTuple in players)
         {
-            Console.WriteLine(playerTuple.Item2);
             if (playerTuple.Item2 == Player.Statuses.Human)
             {
                 Save.UpdateScore(guildId, playerTuple.Item1, Save.PlayerField.HumanScore, _humanMissionSurvivalAward);

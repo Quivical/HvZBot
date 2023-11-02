@@ -124,7 +124,7 @@ namespace DiscordBot
         [SlashCommandGroup("end", "Undo actions from /setup and reset various aspects to the bot's default")]
         public class ClearCommands : ApplicationCommandModule
         {
-            [SlashCommand("allchannels", "Resets your chosen channels, preventing tags and registration."), SlashRequirePermissions(Permissions.ManageChannels)]
+            [SlashCommand("all_channels", "Resets your chosen channels, preventing tags and registration."), SlashRequirePermissions(Permissions.ManageChannels)]
             public async Task ClearChannels(InteractionContext ctx)
             {
                 Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.TagAnnouncementChannel, 0);
@@ -144,7 +144,7 @@ namespace DiscordBot
                         $"{ctx.Channel.Mention} is no longer the registration channel.\nPlease note that this prevents registration."));
             }
             
-            [SlashCommand("tagreporting", "Resets your choice of tag reporting channel. This prevents tags."), SlashRequirePermissions(Permissions.ManageChannels)]
+            [SlashCommand("tag_reporting", "Resets your choice of tag reporting channel. This prevents tags."), SlashRequirePermissions(Permissions.ManageChannels)]
             public async Task ClearTagReporting(InteractionContext ctx)
             {
                 Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.TagReportingChannel, 0);
@@ -153,7 +153,7 @@ namespace DiscordBot
                         $"{ctx.Channel.Mention} is no longer the tag reporting channel.\nPlease note that this prevents the continuation of the game."));
             }
             
-            [SlashCommand("taggannounce", "Resets your choice of announcement channel. This prevents tags."), SlashRequirePermissions(Permissions.ManageChannels)]
+            [SlashCommand("tag_gannounce", "Resets your choice of announcement channel. This prevents tags."), SlashRequirePermissions(Permissions.ManageChannels)]
             public async Task ClearTagAnnounce(InteractionContext ctx)
             {
                 Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.TagAnnouncementChannel, 0);
@@ -365,95 +365,6 @@ namespace DiscordBot
             Score.AwardTagPoints(tagger);
         }
         
-        [SlashCommand("guide", "Explains how to set up this bot for a game")]
-        public async Task Guide(InteractionContext ctx)
-        {
-            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
-                    new DiscordInteractionResponseBuilder().WithContent(
-                        """
-                        A quick outline of the steps to set up the bot are as follows:
-                        
-                        1. Use '/setup channel registrationlogs'. This should be set to a moderator-only channel.
-                        2. Use '/setup role' to create a new human/zombie role, or to tell the bot what your existing h/z roles are.
-                        3. Once those have been done, registration should now be enabled.
-                        4. Players use '/register' to get their HvZId and the role you designated for humans.
-                        5. Before players are able to use '/tag <HvZId of tagged>', you must set the tag announcements channel and tag reporting channel with '/setup channel'.
-                        6. '/tag' will take care of transferring tagged players out of the human channel and into the zombie channel.
-                        7. Optionally use '/mission' commands to setup missions and track player attendance. 
-                        8. Have fun!
-                        
-                        Please note:
-                        -only those with the 'Manage Channels' permission are able to use moderator commands.
-                        -you will need to set your human chats to only be accessible by the human role
-                        -you will need to set your zombie chats to only be accessible by the zombie role and the oz
-                        """));
-        }
-        
-        [SlashCommand("help", "Come here if you have any questions about the commands")]
-        public async Task Help(InteractionContext ctx)
-        {
-            string help1 = """
-                          <> = Required field
-                          [] = Optional field
-                          ~
-                          **Moderator Commands**
-                          */setup* - This group of commands is used for setting up the game.
-                          
-                          */setup channel* - This subgroup is for telling the bot which channels you'd like to use for key functions.
-                          
-                          */setup channel registrationlogs <Channel> [Clear? True/False]* - Choose which channel you would like to log players' HvZIds to when they register. This should be set to a mod-only channel. Setting clear to true will un-set the channel and prevent registration.
-                          
-                          */setup channel tagannouncement <Channel> [Clear? True/False]* - Choose which channel you'd like to announce tags in. It is recommended that the channel you choose is read-only for your players. Setting clear to true will un-set the channel and prevent tags.
-                          
-                          */setup channel tagreporting <Channel> [Clear? True/False]* - Choose where zombies should report their tags with /tag. This should be a zombie-only channel so that humans do not see the OZ using /tag. Setting clear to true will un-set the channel and prevent tags.
-                          
-                          */setup channel all <Channel> [Clear? True/False]* - A combination of the previous three commands, all on the same channel. Useful for quickly setting up a game for testing. Setting clear to true will un-set all channels, preventing registration and tags.
-                          """;
-            string help2 = """
-                           *next page...*
-                           */setup role* - This subgroup of commands is used for setting up the bot's Human and Zombie roles.
-                           
-                           */setup role human <Existing/New> [HumanRole]* - This command is for telling the bot which role to give to players upon registration. You can either tell the bot to use an existing role, or tell it to create a new one for you.
-                           
-                           */setup role zombie <Existing/New> [ZombieRole]* - This command is for telling the bot which role to give to players upon being tagged. You can either tell the bot to use an existing role, or tell it to create a new one for you.
-                           
-                           */setup role oz* - Choose which player should be the OZ. This only works AFTER the chosen player has registered. This will hide their name in tag announcements.
-                           """;
-            string help3 = """
-                           *next page...*
-                           */end* - This group of commands undoes various moderator commands and gameplay sequences.
-                           
-                           */end game* - This command has the effect of all other */end* commands, as well as removing your players from the database. This resets your game to square one.
-                           
-                           */end oz* - Turns the OZ into a normal zombie for tag announcements, and fixes their role assignments.
-                           
-                           */end registration* - Disables the registration logs channel, preventing further registrations. This does not prevent tags.
-                           
-                           */end tagreporting* - Disables the tag reporting channel, preventing tags.
-                           
-                           */end tagannounce* - Disables the tag announcement channel, preventing tags.
-                           
-                           */end roles* - Unsets the Humans and Zombie discord roles.
-                           """;
-            string help4 = """
-                           **Player Commands**
-                           */register* - Gives the player the human role and enters them into the bot's database. Players must register before logging any tags or becoming the OZ.
-                           
-                           */tag <HvZId>* - Only usable by zombies and the OZ. Turns the tagged player into a Zombie, and announces it in the designated tag announcement channel.
-                           
-                           ~
-                           **Other**
-                           */help* - That's me! I list all of the commands, their purposes, and their usages.
-                           
-                           */guide* - A quick step-by-step guide on how to start a game using this bot.
-                           """;
-            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
-                new DiscordInteractionResponseBuilder().WithContent(help1));
-            await ctx.Channel.SendMessageAsync(help2);
-            await ctx.Channel.SendMessageAsync(help3);
-            await ctx.Channel.SendMessageAsync(help4);
-        }
-
         [SlashCommandGroup("mission","Commands for starting, ending, and attending missions.")]
         public class MissionCommands : ApplicationCommandModule
         {
@@ -594,8 +505,8 @@ namespace DiscordBot
             [SlashCommand("require_keyword", "Requires players to enter a 'keyword' in order to attend the mission."), SlashRequireUserPermissions(Permissions.ManageChannels)]
             public async Task LockMissions(InteractionContext ctx, [Option("status", "True enables, false disables.")] bool locked = true)
             {
-                Save.UpdateGuildBoolField(ctx.Guild.Id, Save.GuildField.MissionStatus, locked);
                 Guild guild = Save.GetGuild(ctx.Guild.Id).Result;
+                Save.UpdateGuildMissionStatus(ctx.Guild.Id, new MissionStatus(guild.MissionStatus.closed, locked));
                 
                 if (locked)
                 {
@@ -611,6 +522,116 @@ namespace DiscordBot
                 }
                 
             }
+        }
+        
+        [SlashCommand("guide", "Explains how to set up this bot for a game")]
+        public async Task Guide(InteractionContext ctx)
+        {
+            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                    new DiscordInteractionResponseBuilder().WithContent(
+                        """
+                        A quick outline of the steps to set up the bot are as follows:
+                        
+                        1. Use '/setup channel registration_logs'. This should be set to a moderator-only channel.
+                        2. Use '/setup role' to create a new human/zombie role, or to tell the bot what your existing h/z roles are.
+                        3. Once those have been done, registration should now be enabled.
+                        4. Players use '/register' to get their HvZId and the role you designated for humans.
+                        5. Before players are able to use '/tag <HvZId of tagged>', you must set the tag announcements channel and tag reporting channel with '/setup channel'.
+                        6. '/tag' will take care of transferring tagged players out of the human channel and into the zombie channel.
+                        7. Optionally use '/mission' commands to setup missions and track player attendance. 
+                        8. Have fun!
+                        
+                        Please note:
+                        -only those with the 'Manage Channels' permission are able to use moderator commands.
+                        -you will need to set your human chats to only be accessible by the human role
+                        -you will need to set your zombie chats to only be accessible by the zombie role and the oz
+                        """));
+        }
+        
+        [SlashCommand("help", "Come here if you have any questions about the commands")]
+        public async Task Help(InteractionContext ctx)
+        {
+            string help1 = """
+                          <> = Required field
+                          [] = Optional field
+                          ~
+                          __**Moderator Commands**__
+                          **Setup:**
+                          
+                          */setup* - This group of commands is used for setting up the game.
+                          
+                          */setup channel* - This subgroup is for telling the bot which channels you'd like to use for key functions.
+                          
+                          */setup channel registration_logs <Channel>* - Choose which channel you would like to log players' HvZIds to when they register. This should be set to a mod-only channel.
+                          
+                          */setup channel tag_announcement <Channel>* - Choose which channel you'd like to announce tags in. It is recommended that the channel you choose is read-only for your players.
+                          
+                          */setup channel tag_reporting <Channel>* - Choose where zombies should report their tags with /tag. This should be a zombie-only channel so that humans do not see the OZ using /tag.
+                          
+                          */setup channel all <Channel>* - A combination of the previous three commands, all on the same channel. Useful for quickly setting up a game for testing.
+                          """;
+            string help2 = """
+                           *next page...*
+                           */setup role* - This subgroup of commands is used for setting up the bot's Human and Zombie roles.
+                           
+                           */setup role human <Existing/New> [HumanRole]* - This command is for telling the bot which role to give to players upon registration. You can either tell the bot to use an existing role, or tell it to create a new one for you.
+                           
+                           */setup role zombie <Existing/New> [ZombieRole]* - This command is for telling the bot which role to give to players upon being tagged. You can either tell the bot to use an existing role, or tell it to create a new one for you.
+                           
+                           */setup role oz* - Choose which player should be the OZ. This only works AFTER the chosen player has registered. This will hide their name in tag announcements.
+                           """;
+            string help3 = """
+                           *next page...*
+                           **Unset/End:**
+                           
+                           */end* - This group of commands undoes various moderator commands and gameplay sequences.
+                           
+                           */end game* - This command has the effect of all other */end* commands, as well as removing your players from the database. This resets your game to square one.
+                           
+                           */end oz* - Turns the OZ into a normal zombie for tag announcements, and fixes their role assignments.
+                           
+                           */end registration* - Disables the registration logs channel, preventing further registrations. This does not prevent tags.
+                           
+                           */end tag_reporting* - Disables the tag reporting channel, preventing tags.
+                           
+                           */end tag_announce* - Disables the tag announcement channel, preventing tags.
+                           
+                           */end roles* - Unsets the Humans and Zombie discord roles.
+                           """;
+            string help4 = """
+                           *next page...*
+                           **Mission:**
+
+                           */mission start <keyword>* - Creates a mission with with the keyword specified. Missions are used for tracking player attendance and points.
+                           
+                           */mission close* - Prevents players from attending the current mission. This command is optional.
+                           
+                           */mission end* - Ends the current mission. This must be used immediately following a mission for proper tracking. This command also inherently closes the mission.
+                           
+                           */mission require_keyword [true/false]* - Require players to enter the specified keyword in order to attend the mission. Use this if you are worried about players mis-using '/mission attend.' Defaults to true.
+                           """;
+            string help5 = """
+                           *next page...*
+                           __**Player Commands**__
+                           
+                           */register* - Gives the player the human role and enters them into the bot's database. Players must register before logging any tags or becoming the OZ.
+                           
+                           */tag <HvZId>* - Only usable by zombies and the OZ. Turns the tagged player into a Zombie, and announces it in the designated tag announcement channel.
+                           
+                           */mission attend [keyword]* - Used in order to log a player's attendance for the current mission. This is used in point-tracking.
+                           
+                           __**Other**__
+                           
+                           */help* - That's me! I list all of the commands, their purposes, and their usages.
+                           
+                           */guide* - A quick step-by-step guide on how to start a game using this bot.
+                           """;
+            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                new DiscordInteractionResponseBuilder().WithContent(help1));
+            await ctx.Channel.SendMessageAsync(help2);
+            await ctx.Channel.SendMessageAsync(help3);
+            await ctx.Channel.SendMessageAsync(help4);
+            await ctx.Channel.SendMessageAsync(help5);
         }
     }
     

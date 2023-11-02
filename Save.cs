@@ -241,7 +241,6 @@ public static class Save
 
     public static void UpdateScore(ulong guildId, ulong userId, string playerField, int pointIncrease)
     {
-        Console.WriteLine("Updating");
         var sqliteCommand = ServerDataConnection.CreateCommand();
         try
         {
@@ -383,24 +382,20 @@ public static class Save
     public static async Task<List<(ulong, Player.Statuses)>> GetAttendees(ulong guildId, string missionName)
     {
         var sqliteCommand = ServerDataConnection.CreateCommand();
-        Console.WriteLine(guildId + missionName);
         sqliteCommand.CommandText =
             @$"UPDATE mission_attendance
-                SET end_status = p.status
-                FROM mission_attendance ma
-                    JOIN players p 
-                        ON ma.discord_user_id = p.discord_user_id
-                        AND ma.guild_id = p.server_id
-                WHERE mission_attendance.mission_name = '{missionName}'
-                RETURNING discord_user_id, end_status";
+                SET end_status = r.status
+                FROM (SELECT discord_user_id, server_id, status FROM players) AS r
+                WHERE mission_attendance.discord_user_id = r.discord_user_id
+                AND mission_attendance.guild_id = r.server_id
+                AND mission_attendance.mission_name = '{missionName}'
+                RETURNING discord_user_id, end_status;";
 
         List<(ulong, Player.Statuses)> players = new List<(ulong, Player.Statuses)>();
         
         await using var reader = await sqliteCommand.ExecuteReaderAsync();
         while (reader.Read())
         {
-            Console.WriteLine("Writing");
-            Console.WriteLine(((ulong) reader.GetInt64(0),(Player.Statuses) reader.GetInt32(1)));
             players.Add(((ulong) reader.GetInt64(0),(Player.Statuses) reader.GetInt32(1)));
         }
 
