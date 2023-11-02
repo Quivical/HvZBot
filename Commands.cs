@@ -153,7 +153,7 @@ namespace DiscordBot
                         $"{ctx.Channel.Mention} is no longer the tag reporting channel.\nPlease note that this prevents the continuation of the game."));
             }
             
-            [SlashCommand("tag_gannounce", "Resets your choice of announcement channel. This prevents tags."), SlashRequirePermissions(Permissions.ManageChannels)]
+            [SlashCommand("tag_announce", "Resets your choice of announcement channel. This prevents tags."), SlashRequirePermissions(Permissions.ManageChannels)]
             public async Task ClearTagAnnounce(InteractionContext ctx)
             {
                 Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.TagAnnouncementChannel, 0);
@@ -193,12 +193,26 @@ namespace DiscordBot
             [SlashCommand("game", "Ends the game, including clearing channel settings and player data."), SlashRequirePermissions(Permissions.ManageChannels)]
             public async Task EndGame(InteractionContext ctx)
             {
+                Guild guild = Save.GetGuild(ctx.Guild.Id).Result;
+                List<ulong> discordIds = Save.GetDiscordIds(guild.Id).Result;
+                DiscordRole human = ctx.Guild.GetRole(guild.HumanRole);
+                DiscordRole zombie = ctx.Guild.GetRole(guild.ZombieRole);
+
+                foreach (ulong discordId in discordIds)
+                {
+                    DiscordMember member = ctx.Guild.GetMemberAsync(discordId).Result;
+                    await member.RevokeRoleAsync(human);
+                    await member.RevokeRoleAsync(zombie);
+                }
+                
                 Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.HumanRole, 0);
                 Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.ZombieRole, 0);
                 Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.TagAnnouncementChannel, 0);
                 Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.TagReportingChannel, 0);
                 Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.RegistrationChannel, 0);
-                Save.RemovePlayers(ctx.Guild.Id);
+                Save.ClearPlayers(ctx.Guild.Id);
+                Save.ClearAttendance(ctx.Guild.Id);
+                
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                     new DiscordInteractionResponseBuilder().WithContent(
                         $"The game has been ended, all moderator commands have been undone, and all players have been removed.\n\nWe hope you had a great game!"));
@@ -389,7 +403,15 @@ namespace DiscordBot
                             $"You must end your current mission before beginning a new one. For proper point tracking you should use '/mission end' as soon as the mission finishes."));
                     return;
                 }
-
+                
+                if (!Save.IsNameAvailable(guild.Id, missionName).Result)
+                {
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                        new DiscordInteractionResponseBuilder().WithContent(
+                            $"You are not allowed to use previously used mission names. If you are attempting to start a new game, please use '/end game'."));
+                    return;
+                }
+                
                 Save.UpdateGuildStringField(ctx.Guild.Id, Save.GuildField.CurrentMission, missionName);
                 if (guild.MissionStatus.locked)
                 {

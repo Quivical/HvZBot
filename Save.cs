@@ -226,7 +226,7 @@ public static class Save
         sqliteCommand.ExecuteNonQuery();
     }
     
-    public static void RemovePlayers(ulong guildId)
+    public static void ClearPlayers(ulong guildId)
     {
         var sqliteCommand = ServerDataConnection.CreateCommand();
 
@@ -316,6 +316,25 @@ public static class Save
         return HvZIdSet;
     }
     
+    public static async Task<List<ulong>> GetDiscordIds(ulong guildId)
+    {
+        var sqliteCommand = ServerDataConnection.CreateCommand();
+        
+        sqliteCommand.CommandText =
+            @$"SELECT discord_user_id FROM players 
+         WHERE server_id = '{guildId}'";
+
+        List<ulong> discordIds = new List<ulong>();
+        
+        await using var reader = await sqliteCommand.ExecuteReaderAsync();
+        while (reader.Read())
+        {
+            discordIds.Add((ulong) reader.GetInt64(0));
+        }
+
+        return discordIds;
+    }
+    
     public static async Task<List<(ulong, int, int)>> GetScores(ulong serverId)
     {
         var sqliteCommand = ServerDataConnection.CreateCommand();
@@ -378,6 +397,26 @@ public static class Save
 
         return count != 0;
     }
+    
+    public static async Task<bool> IsNameAvailable(ulong guildId, string missionName)
+    {
+        var sqliteCommand = ServerDataConnection.CreateCommand();
+        
+        sqliteCommand.CommandText =
+            @$"SELECT count(guild_id) FROM mission_attendance 
+         WHERE guild_id = '{guildId}'
+         AND mission_name = '{missionName}'";
+
+        int count = 0;
+        
+        await using var reader = await sqliteCommand.ExecuteReaderAsync();
+        while (reader.Read())
+        {
+            count += reader.GetInt32(0);
+        }
+
+        return count == 0;
+    }
 
     public static async Task<List<(ulong, Player.Statuses)>> GetAttendees(ulong guildId, string missionName)
     {
@@ -400,6 +439,19 @@ public static class Save
         }
 
         return players;
+    }
+    
+    public static void ClearAttendance(ulong guildId)
+    {
+        var sqliteCommand = ServerDataConnection.CreateCommand();
+
+        sqliteCommand.CommandText = 
+            $"""
+             DELETE FROM mission_attendance WHERE
+                guild_id is '{guildId}'
+             """;
+        
+        sqliteCommand.ExecuteNonQuery();
     }
     
     #endregion
