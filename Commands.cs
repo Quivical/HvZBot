@@ -320,7 +320,7 @@ namespace DiscordBot
             Player tagger = taggerNullable.Value;
             
             //check if tagged is registered.
-            var taggedNullable = Save.GetPlayerData(ctx.Guild.Id, taggedHvZId).Result;
+            var taggedNullable = Save.GetPlayerData(ctx.Guild.Id, taggedHvZId.ToUpper()).Result;
             if (!taggedNullable.HasValue)
             {
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
