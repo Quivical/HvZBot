@@ -25,7 +25,7 @@ public static class Score
             playerField = Save.PlayerField.ZombieScore;
         }
         
-        Save.UpdateScore(player.DiscordUserId, player.DiscordUserId, playerField, bonus);
+        Save.UpdateScore(player.ServerId, player.DiscordUserId, playerField, bonus);
     }
 
     public static string GetLeaderboard(ulong guildId)

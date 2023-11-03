@@ -559,7 +559,7 @@ namespace DiscordBot
         public class ScoreCommands : ApplicationCommandModule
         {
             [SlashCommand("give_bonus", "Award bonus points to a player."), SlashRequireUserPermissions(Permissions.ManageChannels)]
-            public async Task StartMission(InteractionContext ctx, [Option("player", "The player to award.")] DiscordMember member, [Option("bonus", "The amount of bonus points you'd like to award.")] int bonus)
+            public async Task AwardBonus(InteractionContext ctx, [Option("player", "The player to award.")] DiscordUser member, [Option("bonus", "The amount of bonus points you'd like to award.")] long bonus)
             {
                 Player? playerNullable = Save.GetPlayerData(ctx.Guild.Id, member.Id).Result;
                 if (!playerNullable.HasValue)
@@ -569,9 +569,41 @@ namespace DiscordBot
                     return;
                 }
 
-                Score.AwardBonusPoints(playerNullable.Value, bonus);
+                Score.AwardBonusPoints(playerNullable.Value, (int) bonus);
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                     new DiscordInteractionResponseBuilder().WithContent("Bonus points awarded!"));
+            }
+            
+            [SlashCommand("report", "View player scores."), SlashRequireUserPermissions(Permissions.ManageChannels)]
+            public async Task ScoreReport(InteractionContext ctx)
+            {
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                    new DiscordInteractionResponseBuilder().WithContent(
+                        $"Generating Report:"));
+                
+                List<(ulong, int, int, int)> scores = Save.GetScores(ctx.Guild.Id).Result;
+
+                int item = 0;
+                string report = "";
+                foreach ((ulong, int, int, int) scoreTuple in scores)
+                {
+                    report += $"<@{scoreTuple.Item1}>:\nHuman Score: {scoreTuple.Item2}\nZombie Score {scoreTuple.Item3}\nHvZ Score: {scoreTuple.Item3}\n\n";
+                    if (item >= 20)
+                    {
+                        await ctx.Channel.SendMessageAsync($"{report}");
+                        item = 0;
+                        report = "";
+                    }
+                    else
+                    {
+                        item++;
+                    }
+                }
+
+                if (report != "")
+                {
+                    await ctx.Channel.SendMessageAsync($"{report}");
+                }
             }
         }
         

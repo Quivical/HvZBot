@@ -241,6 +241,7 @@ public static class Save
 
     public static void UpdateScore(ulong guildId, ulong userId, string playerField, int pointIncrease)
     {
+        Console.WriteLine(guildId + ", " + userId + ", " + playerField + ", " + pointIncrease);
         var sqliteCommand = ServerDataConnection.CreateCommand();
         try
         {
@@ -335,25 +336,36 @@ public static class Save
         return discordIds;
     }
     
-    public static async Task<List<(ulong, int, int)>> GetScores(ulong serverId)
+    public static async Task<List<(ulong, int, int, int)>> GetScores(ulong serverId)
     {
         var sqliteCommand = ServerDataConnection.CreateCommand();
         
         sqliteCommand.CommandText =
-            @$"SELECT discord_user_id, human_score, zombie_score FROM players 
+            @$"SELECT discord_user_id, human_score, zombie_score, is_oz FROM players 
          WHERE server_id = '{serverId}'";
 
-        List<(ulong, int, int)> ScoresList = new List<(ulong, int, int)>();
+        List<(ulong, int, int, int)> scoresList = new List<(ulong, int, int, int)>();
         
         await using var reader = await sqliteCommand.ExecuteReaderAsync();
         while (reader.Read())
         {
-            var HvZId = reader.GetString(0);
+            int humanScore = reader.GetInt32(1);
+            int zombieScore = reader.GetInt32(2);
+            int hvz;
+            
+            if (reader.GetBoolean(3))
+            {
+                hvz = (int) (.5 * humanScore + zombieScore);
+            }
+            else
+            {
+                hvz = humanScore + zombieScore;
+            }
 
-            ScoresList.Add(((ulong) reader.GetInt64(0), reader.GetInt32(1), reader.GetInt32(2)));
+            scoresList.Add(((ulong)reader.GetInt64(0), humanScore, zombieScore, hvz));
         }
 
-        return ScoresList;
+        return scoresList;
     }
     
     #endregion
