@@ -445,6 +445,15 @@ namespace DiscordBot
                 Guild guild = Save.GetGuild(ctx.Guild.Id).Result;
                 string missionName = guild.CurrentMission;
 
+                if (missionName == "")
+                {
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                        new DiscordInteractionResponseBuilder().WithContent(
+                            $"There are currently no active missions. Start one with '/mission start <keyword>'!"));
+                    return;
+                }
+                
+                
                 Save.UpdateGuildStringField(guild.Id, Save.GuildField.CurrentMission, "");
                 Save.UpdateGuildMissionStatus(ctx.Guild.Id, new MissionStatus(false, guild.MissionStatus.locked));
                 
