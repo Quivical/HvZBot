@@ -546,6 +546,16 @@ namespace DiscordBot
             }
         }
         
+        [SlashCommandGroup("score","Commands for giving and viewing score.")]
+        public class ScoreCommands : ApplicationCommandModule
+        {
+            [SlashCommand("give_bonus", "Award bonus points to a player."), SlashRequireUserPermissions(Permissions.ManageChannels)]
+            public async Task StartMission(InteractionContext ctx, [Option("player", "The player to award.")] DiscordMember player, [Option("bonus", "The amount of bonus points you'd like to award.")] int bonus)
+            {
+                
+            }
+        }
+        
         [SlashCommand("guide", "Explains how to set up this bot for a game")]
         public async Task Guide(InteractionContext ctx)
         {
