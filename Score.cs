@@ -14,15 +14,9 @@ public static class Score
 
     public static void AwardBonusPoints(Player player, int bonus)
     {
-        Player? playerNullable = Save.GetPlayerData(player.ServerId, player.DiscordUserId).Result;
         string playerField;
-        if (!playerNullable.HasValue)
-        {
-            Console.WriteLine("Player not found on AwardBonusPoints!");
-            return;
-        } 
-        
-        if (playerNullable.Value is { Status: Player.Statuses.Human, IsOz: false })
+
+        if (player is { Status: Player.Statuses.Human, IsOz: false })
         {
             playerField = Save.PlayerField.HumanScore;
         }

@@ -559,9 +559,19 @@ namespace DiscordBot
         public class ScoreCommands : ApplicationCommandModule
         {
             [SlashCommand("give_bonus", "Award bonus points to a player."), SlashRequireUserPermissions(Permissions.ManageChannels)]
-            public async Task StartMission(InteractionContext ctx, [Option("player", "The player to award.")] DiscordMember player, [Option("bonus", "The amount of bonus points you'd like to award.")] int bonus)
+            public async Task StartMission(InteractionContext ctx, [Option("player", "The player to award.")] DiscordMember member, [Option("bonus", "The amount of bonus points you'd like to award.")] int bonus)
             {
-                
+                Player? playerNullable = Save.GetPlayerData(ctx.Guild.Id, member.Id).Result;
+                if (!playerNullable.HasValue)
+                {
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                        new DiscordInteractionResponseBuilder().WithContent("That player hasn't registered!"));
+                    return;
+                }
+
+                Score.AwardBonusPoints(playerNullable.Value, bonus);
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                    new DiscordInteractionResponseBuilder().WithContent("Bonus points awarded!"));
             }
         }
         
