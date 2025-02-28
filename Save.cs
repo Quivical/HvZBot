@@ -355,6 +355,7 @@ public static class Save
             
             if (reader.GetBoolean(3))
             {
+                Console.WriteLine("Found an OZ!");
                 hvz = (int) (.5 * humanScore + zombieScore);
             }
             else

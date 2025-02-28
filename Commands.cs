@@ -587,7 +587,7 @@ namespace DiscordBot
                 string report = "";
                 foreach ((ulong, int, int, int) scoreTuple in scores)
                 {
-                    report += $"<@{scoreTuple.Item1}>:\nHuman Score: {scoreTuple.Item2}\nZombie Score {scoreTuple.Item3}\nHvZ Score: {scoreTuple.Item3}\n\n";
+                    report += $"<@{scoreTuple.Item1}>:\nHuman Score: {scoreTuple.Item2}\nZombie Score: {scoreTuple.Item3}\nHvZ Score: {scoreTuple.Item4}\n\n";
                     if (item >= 20)
                     {
                         await ctx.Channel.SendMessageAsync($"{report}");
