@@ -1,4 +1,4 @@
-namespace DiscordBot
+namespace HvZBot.utils
 {
     public static class DotEnv
     {

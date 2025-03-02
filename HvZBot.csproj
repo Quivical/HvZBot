@@ -5,7 +5,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <RootNamespace>DiscordBot</RootNamespace>
+    <RootNamespace>HvZBot</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
