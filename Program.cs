@@ -6,13 +6,26 @@ using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddControllersWithViews();
 builder.Services.AddLogging(configure => configure.AddConsole());
 builder.Services.AddHostedService<Bot>();
 
 var app = builder.Build();
 
-app.MapFallbackToFile("index.html"); // Added this line
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+}
+
+app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.UseDefaultFiles();
+app.UseRouting();
+
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller}/{action=Index}/{id?}");
+
+app.MapFallbackToFile("index.html");
 
 app.Run();
