@@ -361,8 +361,12 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
 /secrets.env
 .idea/
 DiscordBot.sln
 nohup.out
 /ServerData.db
+/ClientApp/package-lock.json
+/package-lock.json
+/data/ServerData.db

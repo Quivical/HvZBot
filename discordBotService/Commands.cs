@@ -142,7 +142,7 @@ namespace HvZBot.discordBotService
                 Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.RegistrationChannel, 0);
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                     new DiscordInteractionResponseBuilder().WithContent(
-                        $"{ctx.Channel.Mention} is no longer the registration channel.\nPlease note that this prevents registration."));
+                        $"The registration channel has been unset.\nPlease note that this prevents registration."));
             }
             
             [SlashCommand("tag_reporting", "Resets your choice of tag reporting channel. This prevents tags."), SlashRequirePermissions(Permissions.ManageChannels)]
@@ -194,11 +194,20 @@ namespace HvZBot.discordBotService
             [SlashCommand("game", "Ends the game, including clearing channel settings and player data."), SlashRequirePermissions(Permissions.ManageChannels)]
             public async Task EndGame(InteractionContext ctx)
             {
+                await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
+
                 Guild guild = Save.GetGuild(ctx.Guild.Id).Result;
                 List<ulong> discordIds = Save.GetDiscordIds(guild.Id).Result;
                 DiscordRole human = ctx.Guild.GetRole(guild.HumanRole);
                 DiscordRole zombie = ctx.Guild.GetRole(guild.ZombieRole);
 
+                if (human == null || zombie == null)
+                {
+                    await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(
+                        "The human or zombie role has not yet been defined and thus cannot be removed from players. If you need them removed, please specify those roles first, then try this command again."));
+                    return;
+                }
+                
                 foreach (ulong discordId in discordIds)
                 {
                     DiscordMember member = ctx.Guild.GetMemberAsync(discordId).Result;
@@ -214,9 +223,8 @@ namespace HvZBot.discordBotService
                 Save.ClearPlayers(ctx.Guild.Id);
                 Save.ClearAttendance(ctx.Guild.Id);
                 
-                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
-                    new DiscordInteractionResponseBuilder().WithContent(
-                        $"The game has been ended, all moderator commands have been undone, and all players have been removed.\n\nWe hope you had a great game!"));
+                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(
+                    "The game has been ended, all moderator commands have been undone, and all players have been removed.\n\nWe hope you had a great game!"));
             }
         }
 

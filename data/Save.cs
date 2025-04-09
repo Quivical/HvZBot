@@ -4,7 +4,7 @@ namespace HvZBot.data;
 
 public static class Save
 {
-    private static readonly SqliteConnection ServerDataConnection = new SqliteConnection($"Data Source=ServerData.db;");
+    private static readonly SqliteConnection ServerDataConnection = new SqliteConnection("Data Source=data/ServerData.db;");
     
     public static class GuildField
     {

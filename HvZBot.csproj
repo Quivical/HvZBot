@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -19,6 +18,7 @@
     <PackageReference Include="DSharpPlus" Version="4.5.0" />
     <PackageReference Include="DSharpPlus.CommandsNext" Version="4.5.0" />
     <PackageReference Include="DSharpPlus.SlashCommands" Version="4.5.0" />
+    <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="9.0.3" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.2" />
   </ItemGroup>
 
@@ -32,15 +32,12 @@
 
   <ItemGroup>
     <None Remove="SQLite\**" />
-    <None Remove="secrets.env" />
   </ItemGroup>
 
   <ItemGroup>
     <!-- Don't publish the SPA source files, but do show them in the project files list -->
     <Content Remove="$(SpaRoot)**"/>
-    <Content Include="..\.dockerignore">
-      <Link>.dockerignore</Link>
-    </Content>
+    <Content Include="Folder.DotSettings.user" />
     <None Remove="$(SpaRoot)**"/>
     <None Include="$(SpaRoot)**" Exclude="$(SpaRoot)node_modules\**"/>
   </ItemGroup>

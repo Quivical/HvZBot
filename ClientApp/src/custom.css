@@ -1,6 +1,19 @@
 /* Provide sufficient contrast against white background */
+body {
+  color: aliceblue;
+  background-color: rgba(5,13,29,0.94);
+}
+
+.nav-link {
+  color: aliceblue !important;
+}
+
+.navbar-brand {
+  color: aliceblue;
+}
+
 a {
-  color: #0366d6;
+  color: mediumaquamarine;
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
