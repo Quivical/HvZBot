@@ -3,14 +3,11 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.SlashCommands;
 using HvZBot.data;
-using HvZBot.utils;
 
 namespace HvZBot.discordBotService
 {
     public class Bot : IHostedService, IDisposable
     {
-        private readonly string _root;
-        private readonly string _dotEnv;
         private readonly ILogger<Bot> _logger;
         private readonly IHostApplicationLifetime _appLifetime;
         public DiscordClient? Client { get; set; }
@@ -20,9 +17,6 @@ namespace HvZBot.discordBotService
         {
             _logger = logger;
             _appLifetime = appLifetime;
-            _root = Directory.GetCurrentDirectory();
-            _dotEnv = Path.Combine(_root, "secrets.env");
-            DotEnv.Load(_dotEnv);
         }
 
 
