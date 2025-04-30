@@ -30,7 +30,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddDiscord(options =>
 {
-    options.ClientId = "1112107024415735918";
+    options.ClientId = Environment.GetEnvironmentVariable("ClientId")!;
     options.ClientSecret = Environment.GetEnvironmentVariable("ClientSecret")!;
     options.Scope.Add("identify");
     options.Scope.Add("guilds");
