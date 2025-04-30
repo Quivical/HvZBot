@@ -20,14 +20,12 @@ ClientApp/.env.*
 .env.*
 .dockerignore
 
-# SQLite database (if you want to keep it outside the container)
 ServerData.db
 
 # Build artifacts
 bin/
 obj/
 
-# Lock files (optional, depends on your dependency strategy)
 package-lock.json
 
 .idea/
