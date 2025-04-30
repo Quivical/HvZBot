@@ -1,4 +1,4 @@
-namespace DiscordBot
+namespace HvZBot.data
 {
     public struct Player
     {

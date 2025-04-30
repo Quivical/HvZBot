@@ -1,10 +1,10 @@
-namespace DiscordBot;
+namespace HvZBot.data;
 
 public static class Score
 {
-    private static int _humanMissionSurvivalAward = 2;
-    private static int _zombieAttendanceAward = 1;
-    private static int _zombieTagAward = 2;
+    private const int _humanMissionSurvivalAward = 2;
+    private const int _zombieAttendanceAward = 1;
+    private const int _zombieTagAward = 2;
     
     public static void AwardTagPoints(Player zombie)
     {
