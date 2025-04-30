@@ -1,10 +1,23 @@
+using System.Data;
 using Microsoft.Data.Sqlite;
 
 namespace HvZBot.data;
 
 public static class Save
 {
-    private static readonly SqliteConnection ServerDataConnection = new SqliteConnection($"Data Source=ServerData.db;");
+    private static readonly SqliteConnection ServerDataConnection = new SqliteConnection("Data Source=data/ServerData.db;");
+    private const string BaseConnectionString = "Data Source=data/ServerData.db";
+
+    private static readonly SqliteConnection ROServerDataConnection = new SqliteConnection(
+        new SqliteConnectionStringBuilder(BaseConnectionString)
+        {
+            Mode = SqliteOpenMode.ReadWriteCreate,
+        }.ToString());
+    private static readonly SqliteConnection RWServerDataConnection = new SqliteConnection(
+        new SqliteConnectionStringBuilder(BaseConnectionString)
+        {
+            Mode = SqliteOpenMode.ReadWrite,
+        }.ToString());
     
     public static class GuildField
     {
@@ -27,6 +40,8 @@ public static class Save
     static Save()
     {
         ServerDataConnection.Open();
+        ROServerDataConnection.Open();
+        RWServerDataConnection.Open();
     }
 
     #region Guild Commands
@@ -322,8 +337,9 @@ public static class Save
         var sqliteCommand = ServerDataConnection.CreateCommand();
         
         sqliteCommand.CommandText =
-            @$"SELECT discord_user_id FROM players 
-         WHERE server_id = '{guildId}'";
+            @$"SELECT discord_user_id 
+            FROM players 
+            WHERE server_id = '{guildId}'";
 
         List<ulong> discordIds = new List<ulong>();
         
@@ -367,6 +383,29 @@ public static class Save
         }
 
         return scoresList;
+    }
+
+    public static async Task<List<ulong>> GetGuildsForPlayer(ulong playerId)
+    {
+        var sqliteCommand = ROServerDataConnection.CreateCommand();
+        sqliteCommand.CommandText =
+            @"
+            SELECT server_id 
+            FROM players
+            WHERE discord_user_id = $id
+            ";
+        sqliteCommand.Parameters.AddWithValue("$id", playerId);
+
+        List<ulong> guildIds = new List<ulong>();
+        
+        await using var reader = await sqliteCommand.ExecuteReaderAsync();
+        while (reader.Read())
+        {
+            var guild = (ulong) reader.GetInt64(0);
+            guildIds.Add(guild);
+        }
+        
+        return guildIds;
     }
     
     #endregion

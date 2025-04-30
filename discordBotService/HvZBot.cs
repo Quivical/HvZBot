@@ -3,26 +3,20 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.SlashCommands;
 using HvZBot.data;
-using HvZBot.utils;
 
 namespace HvZBot.discordBotService
 {
     public class Bot : IHostedService, IDisposable
     {
-        private readonly string _root;
-        private readonly string _dotEnv;
-        private readonly ILogger<Bot> _logger; // Add logger
-        private readonly IHostApplicationLifetime _appLifetime; // Add appLifetime
+        private readonly ILogger<Bot> _logger;
+        private readonly IHostApplicationLifetime _appLifetime;
         public DiscordClient? Client { get; set; }
         public ServiceProvider? DiscordServices { get; set; }
 
-        public Bot(ILogger<Bot> logger, IHostApplicationLifetime appLifetime) // Add constructor parameters
+        public Bot(ILogger<Bot> logger, IHostApplicationLifetime appLifetime)
         {
             _logger = logger;
             _appLifetime = appLifetime;
-            _root = Directory.GetCurrentDirectory();
-            _dotEnv = Path.Combine(_root, "secrets.env");
-            DotEnv.Load(_dotEnv);
         }
 
 
@@ -34,7 +28,7 @@ namespace HvZBot.discordBotService
                 Token = Environment.GetEnvironmentVariable("HvZToken"),
                 TokenType = TokenType.Bot,
                 AutoReconnect = true,
-                MinimumLogLevel = LogLevel.Information
+                MinimumLogLevel = LogLevel.Debug
             };
             this.Client = new DiscordClient(cfg);
             this.DiscordServices = new ServiceCollection()
@@ -45,7 +39,7 @@ namespace HvZBot.discordBotService
             var slash = Client.UseSlashCommands();
 
             slash.RegisterCommands<AdminCommands>(
-                1148742162259923065); // Assuming AdminCommands and SlashCommands are defined elsewhere
+                1148742162259923065);
             slash.RegisterCommands<SlashCommands>();
 
             DiscordActivity status = new("HvZ at Goucher College!", ActivityType.Playing);
@@ -57,7 +51,7 @@ namespace HvZBot.discordBotService
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to connect to Discord.");
-                _appLifetime.StopApplication(); // Stop application on failure
+                _appLifetime.StopApplication();
             }
         }
 
@@ -70,7 +64,7 @@ namespace HvZBot.discordBotService
 
         public Task OnGuildCreated(DiscordClient client, GuildCreateEventArgs e)
         {
-            Save.CreateNewGuild(e.Guild.Id); // Assuming Save.CreateNewGuild is defined elsewhere
+            Save.CreateNewGuild(e.Guild.Id);
             return Task.CompletedTask;
         }
 

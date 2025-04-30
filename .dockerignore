@@ -1,3 +1,33 @@
+# Node.js dependencies (if installed locally)
+ClientApp/node_modules
+ClientApp/.env
+ClientApp/.env.*
+
+# Git-related files
+.git
+.gitignore
+.gitattributes
+
+# Editor/IDE files
+*.swp
+*.swo
+.vscode/
+.idea/
+*.log
+
+# Local environment configurations
+.env
+.env.*
+.dockerignore
+
+ServerData.db
+
+# Build artifacts
+bin/
+obj/
+
+package-lock.json
+
+.idea/
+*.xml  # (if you want to ignore all XML Rider settings)
 Dockerfile
-[b|B]in
-[O|o]bj
