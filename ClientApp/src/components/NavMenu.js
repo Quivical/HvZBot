@@ -2,16 +2,39 @@ import React, { Component } from 'react';
 import { Collapse, Navbar, NavbarBrand, NavbarToggler, NavItem, NavLink } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import './NavMenu.css';
+import LoginButton from "./LoginButton";
+import {UserInfo} from "./UserInfo";
+import {isLoggedIn} from "../constants";
+import {UserAvatar} from "./UserAvatar";
 
 export class NavMenu extends Component {
   static displayName = NavMenu.name;
 
+  componentDidMount() {
+    const checkAuth = async () => {
+      try {
+        const loggedIn = await isLoggedIn();
+        this.setState({
+          isAuthenticated: loggedIn
+        });
+      } catch (error) {
+        console.error("Error checking authentication:", error);
+        this.setState({
+          isAuthenticated: false
+        });      
+      }
+    };
+
+    checkAuth();
+  }
+  
   constructor (props) {
     super(props);
 
     this.toggleNavbar = this.toggleNavbar.bind(this);
     this.state = {
-      collapsed: true
+      collapsed: true,
+      isAuthenticated: false
     };
   }
 
@@ -43,6 +66,13 @@ export class NavMenu extends Component {
               </NavItem>
             </ul>
           </Collapse>
+          {
+            this.state.isAuthenticated ? (
+                <UserInfo size={32} withName={false} />
+            ) : (
+                <LoginButton/>
+            )
+          }
         </Navbar>
       </header>
     );

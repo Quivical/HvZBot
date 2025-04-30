@@ -3,12 +3,10 @@ import axios from "axios";
 import {API_BASE_URL} from "../constants";
 import '../custom.css';
 
-function LoginButton({ onLogIn }) {
+function LoginButton() {
   const login = () => {
     console.log('Button clicked!');
-    window.location.href = API_BASE_URL + "/api/auth/login";
-    localStorage.setItem("auth", JSON.stringify(true));
-    onLogIn(true)
+    window.location.href = API_BASE_URL + "/auth/login";
   };
   
   return (

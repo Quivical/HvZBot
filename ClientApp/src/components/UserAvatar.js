@@ -1,5 +1,5 @@
-export function UserAvatar({ avatarUrl, username }) {
+export function UserAvatar({ userId, avatarHash, size, username }) {
     return (
-        <img src={avatarUrl} alt={`${username}'s Avatar`} />
+        <img src={`https://cdn.discordapp.com/avatars/${userId}/${avatarHash}.webp?size=${size}`} alt={`${username}'s Avatar`} />
     );
 }

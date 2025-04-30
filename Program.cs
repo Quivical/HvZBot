@@ -1,12 +1,8 @@
 using System.Security.Claims;
-using HvZBot;
 using HvZBot.discordBotService;
 using HvZBot.utils;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 var root = Directory.GetCurrentDirectory();
 var dotEnv = Path.Combine(root, "secrets.env");
@@ -37,12 +33,20 @@ builder.Services.AddAuthentication(options =>
     options.ClientId = "1112107024415735918";
     options.ClientSecret = Environment.GetEnvironmentVariable("ClientSecret")!;
     options.Scope.Add("identify");
+    options.Scope.Add("guilds");
     options.SaveTokens = true;
 
     options.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "id");
     options.ClaimActions.MapJsonKey(ClaimTypes.Name, "username");
 });
-builder.Services.AddCors(options =>
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+builder.Services.AddCors(options => //disable in prod?
 {
     options.AddPolicy("AllowLocalhost",
         policy =>
@@ -52,7 +56,21 @@ builder.Services.AddCors(options =>
                 .AllowAnyMethod()
                 .AllowCredentials();
         });
+    options.AddPolicy("AllowHvZLive",
+        policy =>
+        {
+            policy.WithOrigins("https://hvzbot.live")
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+        });
 });
+builder.Services.AddHttpClient("DiscordApi", client =>
+{
+    client.BaseAddress = new Uri("https://discord.com/api/v10");
+});
+builder.Services.AddScoped<DiscordApiService>();
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
@@ -64,10 +82,10 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-
-app.UseCors("AllowLocalhost");
-
+app.UseCors(app.Environment.IsDevelopment() ? "AllowLocalhost" : "AllowHvZLive");
 app.UseAuthentication();
+app.UseSession();
+app.UseSessionRevalidation();
 app.UseAuthorization();
 
 app.MapControllerRoute(

@@ -1,6 +1,6 @@
-namespace HvZBot.data.discordApiClasses;
+namespace HvZBot.data.discordApiResponseClasses;
 
-public class User
+public class DiscordUser
 {
     public string id { get; set; }
     public string username { get; set; }

@@ -1,32 +1,42 @@
-import React, { Component, useState } from 'react';
+import React, {Component, useEffect, useState} from 'react';
 import LoginButton from "./LoginButton";
 import {UserInfo} from "./UserInfo";
+import {ServerList} from "./ServerList";
+import {isLoggedIn} from "../constants";
 
 export function Home() {
-    const [isLoggedIn, setIsLoggedIn] = React.useState(
-        () => JSON.parse(localStorage.getItem('auth')) || false);
-    
-    const handleLogIn = (newState) => {
-        setIsLoggedIn(newState);
-    }
+    const [isAuthenticated, setIsAuthenticated] = useState(null);
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                const loggedIn = await isLoggedIn();
+                setIsAuthenticated(loggedIn);
+            } catch (error) {
+                console.error("Error checking authentication:", error);
+                setIsAuthenticated(false);
+            }
+        };
+
+        checkAuth();
+    }, []);
+
     
     return (
         <div>
             <h1>Welcome to HvZBot.live!</h1>
             <p>Your new portal for tracking and managing your Humans vs. Zombies games on any campus.</p>
-            <ul>
-                <li><a href='https://get.asp.net/'>ASP.NET Core</a> and <a href='https://msdn.microsoft.com/en-us/library/67ef8sbd.aspx'>C#</a> for cross-platform server-side code</li>
-                <li><a href='https://facebook.github.io/react/'>React</a> for client-side code</li>
-                <li><a href='http://getbootstrap.com/'>Bootstrap</a> for layout and styling</li>
-            </ul>
-            
             {
-                isLoggedIn ? (
-                    <UserInfo/>
+                isAuthenticated ? (
+                    <div>
+                        <UserInfo size={128} withName={true} />
+                        <p>Please see the servers you're signed up for HvZ in below:</p>
+                        <ServerList/>
+                    </div>
                 ) : (
                     <div> 
                         <p>To get started, connect via your Discord account:</p>
-                        <LoginButton onLogIn={handleLogIn} />
+                        <LoginButton/>
                     </div>
                 )
             }
