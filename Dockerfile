@@ -22,8 +22,11 @@ RUN dotnet publish "HvZBot.csproj" -c Release -o /app/publish /p:UseAppHost=fals
 
 FROM base AS final
 WORKDIR /app
-RUN adduser --disabled-password --gecos '' appuser && chown -R appuser /app
+ARG GID=1000
+ARG UID=1000
+RUN groupadd --gid $GID appgroup && \
+    useradd --uid $UID --gid $GID --create-home --shell /bin/bash appuser && \
+    chown -R appuser /app
 USER appuser
 COPY --from=publish /app/publish .
-COPY *.env ./
 ENTRYPOINT ["dotnet", "HvZBot.dll"]
