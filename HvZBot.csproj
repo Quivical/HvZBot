@@ -16,11 +16,11 @@
 
   <ItemGroup>
     <PackageReference Include="AspNet.Security.OAuth.Discord" Version="9.2.0" />
-    <PackageReference Include="DSharpPlus" Version="4.5.0" />
-    <PackageReference Include="DSharpPlus.CommandsNext" Version="4.5.0" />
-    <PackageReference Include="DSharpPlus.SlashCommands" Version="4.5.0" />
-    <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="9.0.3" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.2" />
+    <PackageReference Include="DSharpPlus" Version="4.5.1" />
+    <PackageReference Include="DSharpPlus.CommandsNext" Version="4.5.1" />
+    <PackageReference Include="DSharpPlus.SlashCommands" Version="4.5.1" />
+    <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="9.0.4" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.4" />
   </ItemGroup>
 
   <ItemGroup>
@@ -33,6 +33,7 @@
 
   <ItemGroup>
     <None Remove="SQLite\**" />
+    <None Include="sqlite\ServerData.db" />
   </ItemGroup>
 
   <ItemGroup>

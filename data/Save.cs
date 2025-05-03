@@ -5,14 +5,15 @@ namespace HvZBot.data;
 
 public static class Save
 {
-    private static readonly SqliteConnection ServerDataConnection = new SqliteConnection("Data Source=data/ServerData.db;");
-    private const string BaseConnectionString = "Data Source=data/ServerData.db";
+    private static readonly SqliteConnection ServerDataConnection = new SqliteConnection("Data Source=sqlite/ServerData.db;");
+    private const string BaseConnectionString = "Data Source=sqlite/ServerData.db";
 
     private static readonly SqliteConnection ROServerDataConnection = new SqliteConnection(
         new SqliteConnectionStringBuilder(BaseConnectionString)
         {
-            Mode = SqliteOpenMode.ReadWriteCreate,
+            Mode = SqliteOpenMode.ReadOnly,
         }.ToString());
+    
     private static readonly SqliteConnection RWServerDataConnection = new SqliteConnection(
         new SqliteConnectionStringBuilder(BaseConnectionString)
         {
@@ -57,7 +58,7 @@ public static class Save
     
     public static async Task<Guild> GetGuild(ulong serverId)
     {
-        var sqliteCommand = ServerDataConnection.CreateCommand();
+        var sqliteCommand = RWServerDataConnection.CreateCommand();
         sqliteCommand.CommandText =
             @$"SELECT * FROM servers
                 where id is '{serverId}'";
@@ -84,8 +85,9 @@ public static class Save
             sqliteCommand.ExecuteNonQuery();
             return true;
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine("ERROR: failed to update guild field: " + ex);
             return false;
         }
     }

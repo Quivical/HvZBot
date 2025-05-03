@@ -370,3 +370,5 @@ nohup.out
 /ClientApp/package-lock.json
 /package-lock.json
 /data/ServerData.db
+/sqlite/
+/sqlite/ServerData.db
