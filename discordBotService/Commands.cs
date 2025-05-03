@@ -198,23 +198,58 @@ namespace HvZBot.discordBotService
 
                 Guild guild = Save.GetGuild(ctx.Guild.Id).Result;
                 List<ulong> discordIds = Save.GetDiscordIds(guild.Id).Result;
-                DiscordRole human = ctx.Guild.GetRole(guild.HumanRole);
-                DiscordRole zombie = ctx.Guild.GetRole(guild.ZombieRole);
-
-                if (human == null || zombie == null)
+                
+                if (guild.HumanRole == 0 || guild.ZombieRole == 0)
                 {
                     await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(
                         "The human or zombie role has not yet been defined and thus cannot be removed from players. If you need them removed, please specify those roles first, then try this command again."));
                     return;
                 }
                 
-                foreach (ulong discordId in discordIds)
+                DiscordRole human = ctx.Guild.GetRole(guild.HumanRole);
+                DiscordRole zombie = ctx.Guild.GetRole(guild.ZombieRole);
+
+                if (human == null || zombie == null)
                 {
-                    DiscordMember member = ctx.Guild.GetMemberAsync(discordId).Result;
-                    await member.RevokeRoleAsync(human);
-                    await member.RevokeRoleAsync(zombie);
+                    await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(
+                        "The human or zombie role was specified, but I cannot locate the role within your server. If you deleted the role, please specify the new one with '/setup role'."));
+                    return;
                 }
                 
+                Console.WriteLine("Getting Discord Ids");
+                DiscordMember member;
+                foreach (ulong discordId in discordIds)
+                {
+                    try
+                    {
+                        member = ctx.Guild.GetMemberAsync(discordId).Result;
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("Error getting a Discord user: " + e);
+                        return;
+                    }
+                    try
+                    {
+                        await member.RevokeRoleAsync(human);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("Error removing the human role from a Discord user: " + e);
+                        return;
+                    }
+                    try
+                    {
+                        await member.RevokeRoleAsync(zombie);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("Error removing the zombie role from a Discord user: " + e);
+                        return;
+                    }
+                }
+                Console.WriteLine("Revoked all roles. Updating guild fields.");
+
                 Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.HumanRole, 0);
                 Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.ZombieRole, 0);
                 Save.UpdateGuildUlongField(ctx.Guild.Id, Save.GuildField.TagAnnouncementChannel, 0);

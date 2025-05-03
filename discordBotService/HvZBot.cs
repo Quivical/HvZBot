@@ -28,7 +28,7 @@ namespace HvZBot.discordBotService
                 Token = Environment.GetEnvironmentVariable("HvZToken"),
                 TokenType = TokenType.Bot,
                 AutoReconnect = true,
-                MinimumLogLevel = LogLevel.Debug
+                MinimumLogLevel = LogLevel.Warning
             };
             this.Client = new DiscordClient(cfg);
             this.DiscordServices = new ServiceCollection()

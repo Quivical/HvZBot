@@ -11,7 +11,14 @@ DotEnv.Load(dotEnv);
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
-builder.Services.AddLogging(configure => configure.AddConsole());
+builder.Services.AddLogging(configure =>
+{
+    configure.AddFilter("Microsoft", LogLevel.Warning);
+    configure.AddConsole(consoleOptions =>
+    {
+        consoleOptions.LogToStandardErrorThreshold = LogLevel.Warning;
+    });
+});
 builder.Services.AddHostedService<Bot>();
 builder.Services.Configure<CookiePolicyOptions>(options =>
 {

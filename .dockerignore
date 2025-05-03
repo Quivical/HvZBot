@@ -21,6 +21,13 @@ ClientApp/.env.*
 .dockerignore
 
 ServerData.db
+data/ServerData.db
+
+/sqlite/
+/sqlite/ServerData.db
+sqlite/
+sqlite/ServerData.db
+
 
 # Build artifacts
 bin/
@@ -28,6 +35,8 @@ obj/
 
 package-lock.json
 
-.idea/
 *.xml  # (if you want to ignore all XML Rider settings)
 Dockerfile
+
+README.md
+secrets.env
