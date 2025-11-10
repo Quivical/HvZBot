@@ -227,6 +227,11 @@ namespace HvZBot.discordBotService
                     catch (Exception e)
                     {
                         Console.WriteLine("Error getting a Discord user: " + e);
+                        if (e.Message.Contains("System.AggregateException: One or more errors occurred. (Not found: 404)"))
+                        {
+                            Console.WriteLine("User not found. Continuing to cycle through the rest of the users.");
+                            continue;
+                        }
                         return;
                     }
                     try
